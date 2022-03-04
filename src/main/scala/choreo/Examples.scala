@@ -4,8 +4,7 @@ import DSL.*
 import choreo.sos.ChorDefSOS.nextChoreo
 import caos.sos.BranchBisim.*
 import caos.common.Example
-import choreo.analysis.{WellBranched, WellChannelled}
-import choreo.analysis.other.SyntAnalysis
+import choreo.analysis.{SyntAnalysis, WellBranched, WellChannelled}
 import choreo.common.Simplify
 import choreo.projection.{ChorDefProj, ChorNoTauProj}
 import syntax.Choreo.Loop

@@ -1,6 +1,6 @@
 package choreo.api
 
-import choreo.api.GlobalCtx.{AgentCtx, AgentOptCtx, BranchInfo, EvidenceMap, ForkInfo, JoinInfo, SplitPoint, TVarInfo}
+import choreo.api.GlobalCtx.{AgentCtx, AgentOptCtx, BranchInfo, Event2Value, ForkInfo, JoinInfo, SplitPoint, TVarInfo}
 import choreo.api.LocalAPI.{SetAPI, SingleAPI}
 import choreo.api.MiniScala.*
 import choreo.npomsets.{Choreo2NPom, NPomset}
@@ -86,7 +86,7 @@ object Session:
     for a <- agents do
       sts ++= ScalaObject(roleName(a),None,None)::
         TypeDef(TName(roleName(a)),TName(roleName(a)++".type"))::Nil
-    val st = MethodSts(sts)
+    val st = NoSepStatements(sts)
     ScalaModule("Roles",ScalaObject("Roles",Some(st),None))
 
   def mkNetwork(globalCtx: GlobalCtx):ScalaModule =
@@ -95,7 +95,7 @@ object Session:
     val sts = for c <- chs.toSet yield VarDef(s"val $c",None,"new Channel")
     ScalaModule("Network",
       ScalaClass("Network",List(),Nil,
-        Some(Statements(imp::MethodSts(sts.toList)::Nil)),None,Nil,false))
+        Some(Statements(imp::NoSepStatements(sts.toList)::Nil)),None,Nil,false))
 
   def mkMsgs(globalCtx: GlobalCtx):ScalaModule =
     val sts =
@@ -103,7 +103,7 @@ object Session:
         m <- globalCtx.messages
       yield
         ScalaClass(msgName(m),List(),Nil,None,None,Nil,false)
-    val st = MethodSts(sts.toList)
+    val st = NoSepStatements(sts.toList)
     ScalaModule("Messages",ScalaObject("Messages",Some(st),None))
 
   def mkProtocol(globalCtx: GlobalCtx):ScalaModule =
@@ -115,7 +115,7 @@ object Session:
     val net = VarDef("val net",None,"new Network()")
     val runObjs = mkRunObjects(globalCtx)
     val runs = mkRuns(globalCtx)
-    val st = Statements(MethodSts(imports)::net::Nil++runObjs++runs)
+    val st = Statements(NoSepStatements(imports)::net::Nil++runObjs++runs)
     ScalaModule("Protocol",ScalaClass("Protocol",List(),Nil,Some(st),None,Nil,false))
 
   def mkRuns(ctx: GlobalCtx):List[Statement] =
@@ -130,7 +130,7 @@ object Session:
       MethodDef("run",Nil,params,Set(),None,st,None,Some(s"""@targetName("$name")"""))
 
   def mkRunSt(agentCtx: AgentCtx):Statement =
-    MethodSts(
+    NoSepStatements(
       Variable(s"Run${agentCtx.name}.use")::
         VarDef("val thread",None,s"""new Thread(() => { f(${agentCtx.name}.start(net)); () })""")::
         FunCall("thread.start",Nil,Nil)::Nil
@@ -184,12 +184,12 @@ object Session:
       //val impSt = MethodSts(imports)
       //val st = Statements(impSt::start::extension::join)
       val st = Statements(
-        MethodSts(
+        NoSepStatements(
           mkInitType(agentCtx)
             ::mkFinalType(agentCtx)
             ::Nil
             ++(if ft.isDefined then ft.get::Nil else Nil)
-        )::MethodSts(
+        )::NoSepStatements(
           VarDef("protected var _network",None,"new Network")
           ::VarDef("protected lazy val net",None, "_network")
             ::Nil)
@@ -335,7 +335,7 @@ object Session:
 
 
     protected def mkSendSt(o:Out,options:Set[Int],agentCtx: AgentCtx):Statement =
-    MethodSts(
+    NoSepStatements(
           FunCall("out",Nil,"net."++chName(o)::"m"::Nil)::
           mkMethodLastSt(o,options,agentCtx)::Nil
       )
@@ -392,7 +392,7 @@ object Session:
 
     protected def mkGlobalStart(agentCtx: AgentCtx):MethodDef =
       val starts = for o <- agentCtx.options yield o.name++".start()"
-      val st = MethodSts(
+      val st = NoSepStatements(
         Asign("_network","network")
           ::FunCall("",Nil,starts)
           ::Nil
@@ -460,7 +460,7 @@ object Session:
     //      MethodDef("send",Nil,to::msg::Nil,Set(),typ,st,None,None)
 
 
-    protected def mkCase(evid:EvidenceMap, st:Statement,agentCtx: AgentOptCtx):Case =
+    protected def mkCase(evid:Event2Value, st:Statement,agentCtx: AgentOptCtx):Case =
       //val evi = agentCtx.agentEvid.pre(e)
       val pattern =
         for e <- agentCtx.events yield
@@ -484,7 +484,7 @@ object Session:
     //  //    FunCall(agentCtx.name,Nil,outArgs)::Nil
     //  //)
 
-    protected def mkOutArgs(evid:EvidenceMap,agentCtx: AgentOptCtx):List[String] =
+    protected def mkOutArgs(evid:Event2Value,agentCtx: AgentOptCtx):List[String] =
       //val evid = agentCtx.agentEvid.post(e)
       for event <- agentCtx.events yield
         if evid.contains(event) then
@@ -550,7 +550,7 @@ object Session:
 
     protected def mkSingleSt(e:Event,act:In|Out,agentCtx: AgentOptCtx):Statement =
       val outArgs = mkOutArgs(agentCtx.agentEvid.post(e),agentCtx)
-      MethodSts(
+      NoSepStatements(
         Variable("use")::
           FunCall(agentCtx.name,Nil,outArgs)::
           Nil
@@ -598,13 +598,13 @@ object Session:
 
     protected def mkSingleStFork(sp:SplitPoint,bi:BranchInfo,agentCtx: AgentOptCtx):Statement =
       val branches = for b <- bi.post yield mkBranchInstance(b,agentCtx)
-      MethodSts(
+      NoSepStatements(
         Variable("use")::
           FunCall("",Nil,Tuple(branches).toString::Nil)::
           Nil
       )
 
-    protected def mkBranchInstance(b:EvidenceMap,agentCtx: AgentOptCtx):FunCall =
+    protected def mkBranchInstance(b:Event2Value,agentCtx: AgentOptCtx):FunCall =
       val args =  mkOutArgs(b,agentCtx)
       FunCall(agentCtx.name,Nil,args)
 
@@ -646,7 +646,7 @@ object Session:
           agentCtx)
       MatchTyp(agentCtx.name++matchTypeName(act),agentCtx.typeVarTypeList,cases)
 
-    protected def mkTypeCase(evid:EvidenceMap,st:TExp,agentCtx: AgentOptCtx):MatchTypCase =
+    protected def mkTypeCase(evid:Event2Value,st:TExp,agentCtx: AgentOptCtx):MatchTypCase =
       val pattern =
         for e <- agentCtx.events yield
           if evid.isDefinedAt(e) then
@@ -654,12 +654,12 @@ object Session:
           else "_"
       MatchTypCase(pattern,st)
 
-    protected def mkSingleMatchTypeSt(evid:EvidenceMap,agentCtx: AgentOptCtx) =
+    protected def mkSingleMatchTypeSt(evid:Event2Value,agentCtx: AgentOptCtx) =
       val outArgs = mkOutTArgs(evid,agentCtx)
 
       TName(agentCtx.name,Some(outArgs))
 
-    protected def mkOutTArgs(evid:EvidenceMap,agentCtx: AgentOptCtx,prefix:String=""):List[String] =
+    protected def mkOutTArgs(evid:Event2Value,agentCtx: AgentOptCtx,prefix:String=""):List[String] =
     //val evid = agentCtx.agentEvid.post(e)
     for (event,tv) <- agentCtx.events.zip(agentCtx.typeVarsList) yield
       if evid.contains(event) then
@@ -682,13 +682,13 @@ object Session:
       val branches = for b <- bi.post yield mkBranchTInstance(b,agentCtx)
       TTuple(branches)
 
-    protected def mkBranchTInstance(b:EvidenceMap,agentCtx: AgentOptCtx):TExp =
+    protected def mkBranchTInstance(b:Event2Value,agentCtx: AgentOptCtx):TExp =
       val args =  mkOutTArgs(b,agentCtx)
       TName(agentCtx.name,Some(args))
 
   ////// helpers
 
-  protected def mkEvidence(evidences:List[EvidenceMap],agentCtx: AgentOptCtx,prefix:String=""):Set[Evidence] =
+  protected def mkEvidence(evidences:List[Event2Value],agentCtx: AgentOptCtx,prefix:String=""):Set[Evidence] =
     (for  m <- evidences yield
       Evidence(
         for (e,v) <- m yield

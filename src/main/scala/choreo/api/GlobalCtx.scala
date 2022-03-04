@@ -1,6 +1,7 @@
 package choreo.api
 
 import choreo.api.GlobalCtx.*
+import choreo.api.GlobalCtx.AgentOptCtx.EventPrePost
 import choreo.npomsets.NPomset.Event
 import choreo.syntax.Agent
 import choreo.syntax.Choreo.{Action, In, Out}
@@ -20,7 +21,7 @@ case class GlobalCtx(
 
 
 object GlobalCtx:
-  type EvidenceMap = Map[Event,String]
+  type Event2Value = Map[Event,String]
 
   /**
    * Contextual information of an agent
@@ -112,6 +113,25 @@ object GlobalCtx:
     lazy val messages =
       eventsBySend.keySet.map(o=>o.m) ++ eventsByRecv.keySet.map(o=>o.m)
 
+    lazy val getAllRecvPrePost:List[EventPrePost] =
+      for
+        (e,in)  <- agentCom.receives.view.toList
+        role    =  choreo.gen.Session.roleName(in.b)
+        msg     =  choreo.gen.Session.msgName(in.m)
+      yield
+        EventPrePost(e,in,agentEvid.pre(e),agentEvid.post(e),role,msg)
+
+
+  object AgentOptCtx:
+    case class EventPrePost(
+      e:Event,
+      act:In|Out,
+      pre:Event2Value,
+      post:Event2Value,
+      role:String,
+      msg:String
+    )
+
   sealed trait SplitPoint
   case class SinglePoint(e:Event)         extends SplitPoint
   case class MultPoints(events:Set[Event]) extends SplitPoint
@@ -153,7 +173,7 @@ object GlobalCtx:
    * @param pre events to events the evidence it needs to execute
    * @param post events to the evidence it sets after executing
    */
-  case class Evid(pre:Map[Event,EvidenceMap], post:Map[Event,EvidenceMap])
+  case class Evid(pre:Map[Event,Event2Value], post:Map[Event,Event2Value])
 
   /**
    * Information regarding type variables for an agent

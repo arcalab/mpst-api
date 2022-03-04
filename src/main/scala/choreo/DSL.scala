@@ -1,18 +1,17 @@
 package choreo
 
-import choreo.analysis.other.SyntAnalysis
 import choreo.view.DotPomsets
 import choreo.common.ParsingException
-import choreo.syntax.Choreo._
-import choreo.syntax._
+import choreo.syntax.Choreo.*
+import choreo.syntax.*
 import choreo.sos.{ChorDefSOS, Network}
 
 import scala.language.implicitConversions
 import choreo.view.DotPomsets.dotPomset
-import choreo.analysis._
-import choreo.pomsets._
+import choreo.analysis.{SyntAnalysis, *}
+import choreo.pomsets.*
 import caos.sos.BranchBisim
-import caos.sos.BranchBisim._
+import caos.sos.BranchBisim.*
 import choreo.sos.Network.NetworkMS
 
 

@@ -31,3 +31,4 @@ trait Code:
   def sep(strings:List[String]):String = strings match
     case Nil => ""
     case _   => strings.mkString("\n\n") ++ "\n\n"
+

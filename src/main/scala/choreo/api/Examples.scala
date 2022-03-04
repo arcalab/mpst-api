@@ -35,16 +35,16 @@ object Examples:
     (m->w1|work) > (m->w2|work) > (m->w3|work) >
       ((w1->m|done) || (w2->m|done) || (w3->m|done))
 
-  val dummy = for i <- ( 1 to 10).toList yield Example("",s"Ex. $i","")
+  val dummy = for i <- ( 5 to 10).toList yield Example("",s"Ex. $i","")
 
   val examples =
     Example(
       "// Buyer-Seller, Basic\n" +
         "s->b:Descr .\ns->b:Price .\n(s->b:Acc+s->b:Rej)",
       "Buyer-Seller, Basic",
-      s"""<strong>Basic protocol for the Buyer-Seller example</strong>
+      s"""<p><strong>Basic protocol for the Buyer-Seller example</strong>
         |The code below is a possible implementation of a process that follows this protocol, assuming the classes Descr, Price, Acc, and Rej exist.
-        |<pre><code class="language-scala">$sellerHtml<br><br>$buyer<br><br>$runHtml</code></pre>""".stripMargin
+        |<pre><code class="language-scala">${sellerHtml}<br><br>$buyer<br><br>$runHtml</code></pre></p>""".stripMargin
     ):: Example(
       s"""// 1 Master - 2 Workers, Basic\n""" +
         "m->w1:Work . m->w2:Work .\nw1->m:Done . w2->m:Done",
@@ -93,10 +93,30 @@ object Examples:
         "m->w1:Work . m->w2:Work . m->w3:Work .\n(w1->m:Done || w2->m:Done || w3->m:Done)",
       "1Master-3Workers, Relaxed" ,
       ""
+    ):: Example(
+      "// Ex. 1\n" +
+      "(a->b:M1 ; (a->b:N1 || a->b:N2) || \n a->b:M2) ; a->b:End",
+      "Ex. 1",
+      ""
+    ):: Example(
+      "// Ex. 2\n" +
+        "a->b:M1 ; (a->b:N1 || a->b:N2) || \n a->b:M2",
+      "Ex. 2",
+      ""
+    ):: Example(
+      "// Ex. 3\n" +
+        "a->b:M ; (a->b:M1 || a->b:M2) ; \n a->b:End",
+      "Ex. 3",
+      ""
+    ):: Example(
+      "// Ex. 4\n" +
+        "a->b:M ; (a->b:M1 || a->b:M2)",
+      "Ex. 4",
+      ""
     )::dummy
 
 
-  val seller =
+  val seller:String =
     """def seller(s: S$Initial): S$Final = s
        |  .send(B, new Descr)
        |  .send(B, new Price)
@@ -105,7 +125,7 @@ object Examples:
        |    (_,_,s) => { println("offer rejected"); s }
        |  )""".stripMargin
 
-  val sellerHtml = seller.replace("\n","<br>")
+  val sellerHtml:String = seller.replace("\n","<br>")
 
   val buyer =
     """def buyer(s: B$Initial): B$Final = s

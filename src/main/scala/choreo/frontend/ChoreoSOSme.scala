@@ -1,7 +1,6 @@
 package choreo.frontend
 
 import choreo.Examples
-import choreo.analysis.other.SyntAnalysis
 import choreo.pomsets.{Choreo2Pom, PomDefSOS, PomKeepSOS, Pomset}
 import choreo.projection.{ChorDefProj, ChorManyTausProj, ChorNoTauProj, NPomDefProj, PomDefProj, Projection}
 import choreo.sos.*
@@ -15,8 +14,8 @@ import caos.sos.{BranchBisim, SOS}
 import caos.sos.SOS.*
 import Network.*
 import caos.view.*
-import choreo.analysis.{WellBranched, WellChannelled}
-import choreo.api.{API, LocalAPI, Protocol, Session}
+import choreo.analysis.{SyntAnalysis, WellBranched, WellChannelled}
+import choreo.api.{API, LocalAPI, Session}
 import choreo.npomsets.{Choreo2NPom, NPomDAG, NPomDefSOS, NPomset}
 import choreo.realisability.{CC, CCPOM, ICNPOM, Merge}
 import choreo.realisability.CC.*

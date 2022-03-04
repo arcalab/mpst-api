@@ -20,7 +20,7 @@ object MiniScala:
       case Nil => ""
       case l   => l.map(l=>l.toCode).mkString("\n\n")
 
-  case class MethodSts(statements:List[Statement]) extends Statement:
+  case class NoSepStatements(statements:List[Statement]) extends Statement:
 
     def toCode(implicit i: Int): String = statements match
       case Nil => ""
@@ -207,6 +207,10 @@ object MiniScala:
       case Some(vars) => name++"["++vars.mkString(",")++"]"
       case None => name)
 
+  case class TVar(name:String,typeConstraint:TExp) extends TExp:
+    def toCode(implicit i:Int):String = ind(i) ++
+      name ++ " <: " ++ typeConstraint.toString
+
   case class TTuple(typs:List[TExp]) extends TExp:
     def toCode(implicit i:Int):String =
       ind(i) ++ params(typs.map(_.toString),ln=false)
@@ -228,7 +232,12 @@ object MiniScala:
         cases.map(c=>c.toCode(i+1)).mkString("\n")
 
   // Case
-  case class Case(pattern:List[String],patternTyp:List[String], output:Statement) extends Statement:
+  case class Case(
+    pattern:List[String],
+    patternTyp:List[String],
+    output:Statement,
+    comment:Option[String] = None
+  ) extends Statement:
     def toCode(implicit i:Int):String =
       ind(i) ++ s"""case ${params(pattern,ln = false)}${mkPatternT()} =>\n""" ++
         output.toCode(i+1)
@@ -238,6 +247,17 @@ object MiniScala:
         s":${params(patternTyp,ln = false)(0)}"
       else ""
 
+//  case class MTDef(name:String,typVars:List[(String,Option[String])],mt:Match) extends Statement:
+//    def toCode(implicit i:Int):String =
+//      s"""${ind(i)}type $name${brackets(mkTVars())(i+1)} = ${typVars.map(_._1).mkString("(",",",")")}""" ++
+//        mt.toCode(i+1)
+//
+//    def mkTVars():List[String] =
+//      typVars.map(t =>
+//        if t._2.isDefined then
+//          s"${t._1} <: ${t._2.get}"
+//        else t._1
+//      ).toList
 
   // Match Type
   case class MatchTyp(name:String, typVars: List[(String,Option[String])], cases:List[MatchTypCase]) extends Statement:

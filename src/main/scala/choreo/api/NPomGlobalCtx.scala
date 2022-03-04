@@ -210,17 +210,17 @@ object NPomGlobalCtx:
     Com(sends,recs)
 
   protected def mkAgentEvid(a:Agent,pom:NPomset):Evid =
-    var pre   = Map[Event,EvidenceMap]()
-    var post  = Map[Event,EvidenceMap]()
+    var pre   = Map[Event,Event2Value]()
+    var post  = Map[Event,Event2Value]()
     for e <- pom.events.toSet do
       pre += (e->mkPreEvid(e,pom))
       post += (e->mkPostEvid(e))
     Evid(pre,post)
 
-  protected def mkPreEvid(e:Event,pom:NPomset):EvidenceMap =
+  protected def mkPreEvid(e:Event,pom:NPomset):Event2Value =
     pom.realPred(e).map(pre => pre->"false").toMap + (e->"true")
 
-  protected def mkPostEvid(e:Event):EvidenceMap =
+  protected def mkPostEvid(e:Event):Event2Value =
     Map(e->"false")
 
 
