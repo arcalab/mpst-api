@@ -37,10 +37,39 @@ object Examples:
 
   val dummy = for i <- ( 5 to 10).toList yield Example("",s"Ex. $i","")
 
+
+  val seller:String =
+    """def seller(s: S$Initial): S$Final = s
+      |  .send(B, new Descr)
+      |  .send(B, new Price)
+      |  .recv(
+      |    (_,_,s) => { println("offer accepted"); s },
+      |    (_,_,s) => { println("offer rejected"); s }
+      |  )""".stripMargin
+
+  val sellerHtml:String = seller.replace("\n","<br>")
+
+  val buyer =
+    """def buyer(s: B$Initial): B$Final = s
+      |  .recv(
+      |    (_,_,s) => s.recv((_,_,s) => s.send(S, new Acc)),
+      |    (_,_,s) => s.recv((_,_,s) => s.send(S, new Rej))
+      |  )""".stripMargin
+
+  val buyerHtml = buyer.replace("\n","<br>")
+
+  val run =
+    """val pr = new Protocol
+      |
+      |pr.run(master);
+      |pr.run(worker1); pr.run(worker2)""".stripMargin
+
+  val runHtml = run.replace("\n","<br>")
+
   val examples =
     Example(
       "// Buyer-Seller, Basic\n" +
-        "s->b:Descr .\ns->b:Price .\n(s->b:Acc+s->b:Rej)",
+        "s->b:Descr .\ns->b:Price .\n(b->s:Acc+b->s:Rej)",
       "Buyer-Seller, Basic",
       s"""<p><strong>Basic protocol for the Buyer-Seller example</strong>
         |The code below is a possible implementation of a process that follows this protocol, assuming the classes Descr, Price, Acc, and Rej exist.
@@ -115,31 +144,3 @@ object Examples:
       ""
     )::dummy
 
-
-  val seller:String =
-    """def seller(s: S$Initial): S$Final = s
-       |  .send(B, new Descr)
-       |  .send(B, new Price)
-       |  .recv(
-       |    (_,_,s) => { println("offer accepted"); s },
-       |    (_,_,s) => { println("offer rejected"); s }
-       |  )""".stripMargin
-
-  val sellerHtml:String = seller.replace("\n","<br>")
-
-  val buyer =
-    """def buyer(s: B$Initial): B$Final = s
-      |  .recv(
-      |    (_,_,s) => s.recv((_,_,s) => s.send(S, new Acc)),
-      |    (_,_,s) => s.recv((_,_,s) => s.send(S, new Rej))
-      |  )""".stripMargin
-
-  val buyerHtml = buyer.replace("\n","<br>")
-
-  val run =
-    """val pr = new Protocol
-      |
-      |pr.run(master);
-      |pr.run(worker1); pr.run(worker2)""".stripMargin
-
-  val runHtml = run.replace("\n","<br>")
