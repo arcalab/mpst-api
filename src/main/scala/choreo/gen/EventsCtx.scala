@@ -1,7 +1,7 @@
 package choreo.gen
 
-import choreo.api.GlobalCtx.Event2Value
-import choreo.gen.Session.*
+import choreo.gen.NPom2SessionCtx.Event2Value
+import choreo.gen.SessionAPI.*
 import choreo.npomsets.NPomset.*
 import choreo.api.MiniScala.{Param, TName, TVar}
 
@@ -18,7 +18,6 @@ object EventsCtx:
     initialVal:String
   ):
     def getParam:Param = Param(param,TName(tVar.name))
-
 
   case class ExtEventCtx(e:Event,param:String,tVar:TVar,initialVal:String):
     def getParam:Param = Param(param,TName(tVar.name))

@@ -18,8 +18,8 @@ trait Code:
     else if !ln || args.size < 4  then args.mkString("[",", ","]")
     else argsLn(args,"[",", ","]")
 
-  def params(args:List[String],sep:String=", ",ln:Boolean=true)(implicit i:Int):String =
-    if !ln || (args.size < 4  && args.map(_.length).sum <60) then args.mkString("(",sep,")")
+  def params(args:List[String],sep:String=", ",ln:Boolean=false)(implicit i:Int):String =
+    if !ln || (args.size < 4) /*&& args.map(_.length).sum <60)*/ then args.mkString("(",sep,")")
     else argsLn(args,"(",sep,")")
 
   def argsLn(args:List[String],fst:String,sep:String,lst:String)(implicit i:Int):String =

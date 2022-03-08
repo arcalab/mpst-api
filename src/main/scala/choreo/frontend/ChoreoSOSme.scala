@@ -15,7 +15,8 @@ import caos.sos.SOS.*
 import Network.*
 import caos.view.*
 import choreo.analysis.{SyntAnalysis, WellBranched, WellChannelled}
-import choreo.api.{API, LocalAPI, Session}
+//import choreo.api.{API, LocalAPI, Session}
+import choreo.gen.SessionAPI
 import choreo.npomsets.{Choreo2NPom, NPomDAG, NPomDefSOS, NPomset}
 import choreo.realisability.{CC, CCPOM, ICNPOM, Merge}
 import choreo.realisability.CC.*
@@ -60,13 +61,13 @@ object ChoreoSOSme extends Configurator[Choreo]:
     //  (prots:Set[LocalAPI])=>prots.map(p=>p.set.api.name).toList,
     //  (c:Choreo)=>Protocol(c)
     //),
-    "Scala APIs"
-      -> VisualizeTab(
-      (s:Session)=>s.modulesToCode.map(m=>View(m._2)):+View(s.toString),
-      Text,
-      (s:Session)=>s.modulesToCode.map(p=>p._1):+"All",
-      (c:Choreo)=>Session(chor2npom(c))
-    ),
+//    "Scala APIs"
+//      -> VisualizeTab(
+//      (s:SessionAPI)=>s.modulesToCode.map(m=>View(m._2)):+View(s.toString),
+//      Text,
+//      (s:SessionAPI)=>s.modulesToCode.map(p=>p._1):+"All",
+//      (c:Choreo)=>SessionAPI(chor2npom(c))
+//    ),
 
 
 //    "NPomset as Text"

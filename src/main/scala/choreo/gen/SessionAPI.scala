@@ -1,17 +1,35 @@
 package choreo.gen
 
-import choreo.api.GlobalCtx.{AgentOptCtx, Event2Value}
-import choreo.api.MiniScala.Evidence
+import choreo.api.Code
+import choreo.api.MiniScala.*
+import choreo.gen.NPom2SessionCtx
+import choreo.gen.NPom2SessionCtx.*
+import choreo.gen.SessionAPI.ScalaModule
+import choreo.npomsets.NPomset
 import choreo.npomsets.NPomset.Event
 import choreo.syntax.{Agent, Msg}
 import choreo.syntax.Choreo.{In, Out}
 
 import scala.collection.immutable.HashMap
 
-object Session:
+case class SessionAPI(modules:List[ScalaModule]):
+  def modulesToCode:List[(String,String)] =
+    modules.map(m=> (m.name,m.toString))
+
+object SessionAPI:
+
+  case class ScalaModule(name:String, statements:Statement) extends Code:
+    def toCode(implicit i: Int): String =
+      statements.toCode
 
   type InOut = In | Out
 
+  def apply(npom:NPomset):SessionAPI =
+    val ctx       = NPom2SessionCtx(npom)
+    val localAPIs = for (a,roleCtx) <- ctx.roles yield LocalAPI(roleCtx)
+    val modules = localAPIs.map(api=>ScalaModule(api.clas.name,Statements(api.clas::api.co::Nil)))
+//    val extras = mkRoles(ctx)::mkNetwork(ctx)::mkProtocol(ctx)::mkMsgs(ctx)::mkUtils()::Nil
+    SessionAPI(modules.toList)//modules)
 
   /**
    * Replaces every event in the list with its corresponding value (e2v) if it exists, or
@@ -34,12 +52,13 @@ object Session:
   def chanName(action:In|Out):String  = action match
     case In(a,b,_)  => b.s.capitalize++a.s.capitalize
     case Out(a,b,_) => a.s.capitalize++b.s.capitalize
-  def passiveRole(a:InOut):String = a match
-    case In(_,b,_)  => roleName(b)
-    case Out(_,b,_) => roleName(b)
+  def sbj(a:InOut):Agent = a match
+    case In(_,b,_)  => b
+    case Out(_,b,_) => b
   def msgName(a:InOut):String = a match
     case In(_,_,m)  => msgName(m)
     case Out(_,_,m) => msgName(m)
+  def className(a:Agent):String = a.s.capitalize
 
 //
 //
