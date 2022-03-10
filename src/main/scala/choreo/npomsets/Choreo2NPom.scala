@@ -7,7 +7,7 @@ import choreo.syntax.{Agent, Choreo, Msg}
 
 object Choreo2NPom:
 
-  private var seed:Int = 0
+  private var seed:Int = 1
   private def next():Int = {seed+=1; seed-1}
 
   /** Converts a choreo expression into a Nested Pomset (with nested sets) */

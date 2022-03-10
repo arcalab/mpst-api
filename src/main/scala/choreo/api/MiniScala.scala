@@ -241,7 +241,7 @@ object MiniScala:
     def toCode(implicit i: Int): String =
       val params = typVars.map(_.toCode(i+1))
       ind(i) ++
-        s"""$name[\n""" + params.mkString(",\n") +  "\n" + ind(i) + "]"
+        s"""$name[\n"""  + params.mkString(",\n") +  "\n" + ind(i) + "]"
 
   case class TVar(name:String,typeConstraint:Option[TExp]=None) extends TExp:
     def toCode(implicit i:Int):String = ind(i) ++
@@ -253,6 +253,11 @@ object MiniScala:
   case class TTuple(typs:List[TExp]) extends TExp:
     def toCode(implicit i:Int):String =
       ind(i) ++ params(typs.map(_.toString),ln=false)
+
+  case class TTupleLn(typs:List[TExp]) extends TExp:
+    def toCode(implicit i:Int):String =
+      ind(i) ++ //params(typs.map(_.toCode(i+1)),ln = true)(0)
+        typs.map(a=>a.toCode(i+1)).mkString(s"(\n",",\n",s"\n${ind(i)})")
 
   case class TFun(from:TExp,to:TExp) extends TExp:
     def toCode(implicit i: Int): String =

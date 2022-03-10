@@ -3,10 +3,11 @@ package choreo.gen
 import choreo.api.MiniScala.*
 import choreo.gen.LocalMethod.*
 import choreo.gen.LocalAPI.*
+import choreo.gen.NPom2SessionCtx.{ForkInfo, forkEvent}
 import choreo.gen.SessionAPI.*
 
 
-case class GlobalMethod(methodDef:MethodDef,methodTypeTDef:TypeDef):
+case class GlobalMethod(methodDef:MethodDef,methodTypeTDef:Statement):
   def getStatements():Statement = Statements(methodTypeTDef::methodDef::Nil)
 
 object GlobalMethod:
@@ -17,7 +18,9 @@ object GlobalMethod:
     if getNumReceives(ctx) > 0 then res :+= recvFrom(ctx)
     res
   protected def recvFrom(ctx: RoleCtx):GlobalMethod =
-    GlobalMethod(mkRecv(ctx),TypeDef(TName("Final"),mkEndType(ctx))) //todo end type
+    GlobalMethod(mkRecv(ctx),
+      Statements(mkRecvArgTypeDef(ctx)::mkRecvTypeAlias(ctx)::Nil)
+      )
   protected def sendFrom(ctx: RoleCtx):GlobalMethod =
     GlobalMethod(mkSend(ctx),mkSendTypeAlias(ctx))
 
@@ -29,8 +32,6 @@ object GlobalMethod:
   protected val m = "m"
   protected val mtype = "M"
 
-  // use instance
-  protected val use = Variable("use")
 
   // receive continuation function name
   protected val f = "f"
@@ -47,7 +48,7 @@ object GlobalMethod:
     val typeVars    = Nil
     val params      = Param(f,mkRecvArgType(ctx))
     val evidence    = Set[Evidence]() // todo
-    val returnType  = mkEndType(ctx)
+    val returnType  = mkRecvType(ctx)
     val body        = mkRecvBody(ctx)
     val comment     = "" //todo mkRecvComment(ctx)
     MethodDef(name, typeVars, params::Nil, evidence, Some(returnType), body, Some(comment))
@@ -58,8 +59,104 @@ object GlobalMethod:
   protected def mkRecvArgTypeName(ctx:RoleCtx):String =
     className(ctx.agent)++"$RecvArgument"
 
-//  protected def mkRecvType(ctx:RoleCtx):TExp =
-//    TName(className(ctx)+"$Pom",)
+  protected def mkRecvType(ctx:RoleCtx):TExp =
+    if ctx.forkes then
+      TName(ctx.name,Some(TName(mkRecvTypeName(ctx),mkRecvTypeVars(ctx)).toString::Nil))
+    else
+      mkEndType(ctx)
+
+  protected def mkRecvTypeName(ctx: RoleCtx):String =
+    if ctx.forkes then
+      className(ctx.agent)+"$Pom1$Final"
+    else
+      className(ctx.agent)+"$Final"
+
+  protected def mkRecvTypeVars(ctx:RoleCtx):Option[List[String]] =
+    if ctx.forkes then
+      Some(List(stateTVar+1))
+    else
+      None
+
+  protected def mkRecvTypeAlias(ctx:RoleCtx):Statement =
+    if ctx.forkes then
+      mkRecvTypeFinal(ctx)
+    else
+      val name      = mkRecvTypeName(ctx)
+      val typeVars  = mkRecvTypeVars(ctx)
+      val typeSt    = mkRecvTypeAliasSt(ctx)
+      TypeDef(TName(name,typeVars), typeSt)
+
+  protected def mkRecvTypeAliasSt(ctx:RoleCtx):TExp =
+    val vars =
+      for lc <- ctx.localCtx yield
+        TTuple(lc.events.map(e=>TName("false")))
+    TName(ctx.name,Some(vars.map(_.toString)))
+
+  protected def mkRecvTypeFinal(ctx:RoleCtx):Statement =
+    val lc = ctx.localCtx.head  // forks, so only one
+    val forkJoin = lc.forkJoin.get
+    val defaultValues = lc.event2Param
+    val allFalse = lc.events.map(e=>e->"false").toMap
+    val regionsIds =
+      for
+        f <- forkJoin.forks
+        r <- f.post
+      yield
+        r.id.toString
+    val cases =
+      for
+        rid <- regionsIds.distinct
+        pattern = mkPattern(lc.events,Map(forkEvent->rid),defaultValues)
+        out = mkPattern(lc.events,Map(forkEvent->rid),allFalse)
+      yield
+        MatchTypCase(pattern,TTuple(out.map(o=>TName(o))))
+    val typeVars = mkStateTVars(ctx).map(t => (t,Option.empty[String]))
+    val noForkCase = MatchTypCase(
+      mkPattern(lc.events,Map(forkEvent->"0"),defaultValues),
+      TTuple(mkPattern(lc.events,Map(forkEvent->"0"),allFalse).map(o=>TName(o)))
+    )
+    MatchTyp(mkRecvTypeName(ctx),typeVars,cases:+noForkCase)
+
+
+  protected def mkRecvArgTypeDef(ctx:RoleCtx):TypeDef =
+    val name      = mkRecvArgTypeName(ctx)
+    val typeVars  = mkStateTVars(ctx)
+    val typeSt    = mkRecvArgTypeSimplify(ctx)
+    TypeDef(TName(name,Some(typeVars)), typeSt)
+
+  protected def mkRecvArgTypeSimplify(ctx:RoleCtx):TExp =
+    val args = mkRecvArgTypeSimplifyITEs(ctx)
+    simplifyType(args)
+
+  protected def mkRecvArgTypeSimplifyITEs(ctx:RoleCtx):List[TExp] =
+    val recvs:List[InOut] = ctx.localCtx.foldLeft[List[InOut]](List[InOut]())({
+      case (acc, lc) => acc++lc.getAllRecvEventsCtx.map(e=>e.act)
+    })
+    val recvBySbjMsg = recvs.groupBy(r=>(sbj(r),msgName(r)))
+    val uniqueRecvs = recvBySbjMsg.map(r=>r._2.head)
+    // types of local receives
+    val recvsType = for r <- uniqueRecvs yield mkTypeOfLocalRecv(r,ctx)
+    // ITEs
+
+    for (r,rt) <- recvs.zip(recvsType) yield
+      mkRecvArgTypeSimplifyITE(r,rt,ctx)
+
+  protected def mkRecvArgTypeSimplifyITE(r:InOut,localRecvTypes:List[TExp],ctx:RoleCtx):TExp =
+    val cond = localRecvTypes.tail.foldLeft[TExp](isErrorType(localRecvTypes.head))({
+      case (acc,st) => andType(acc,isErrorType(st))
+    })
+    ITEType(cond,TUnit,mkRecvContFunType(r,localRecvTypes,ctx))
+
+  protected def mkTypeOfLocalRecv(r:InOut, ctx:RoleCtx):List[TExp] =
+    implicit val builder:MethodBuilder = RecvBuilder
+    for (lc,i) <- ctx.localCtx.zipWithIndex yield
+      TName(mkMatchTypeName(lc),Some(stateTVar+(i+1)::roleName(sbj(r))::msgName(r)::Nil))
+
+  protected def mkRecvContFunType(r:InOut,localRecvType:List[TExp],ctx:RoleCtx):TExp =
+    val role  = TName(roleName(sbj(r)))
+    val msg   = TName(msgName(r))
+    val nextState =  TName(ctx.name,Some(TTuple(localRecvType).toString::Nil))
+    TFun(TTuple(role::msg::nextState::Nil), mkRecvType(ctx))
 
   protected def mkStateTVars(ctx:RoleCtx):List[String] =
     for i <- (1 to ctx.localCtx.size).toList yield stateTVar+i
@@ -73,9 +170,9 @@ object GlobalMethod:
     NoSepStatements(use::matchSt::endSt::Nil)
 
   protected def mkEndInstance(ctx: RoleCtx):Statement =
-//    PreCode(s"s.asInstanceOf[${mkEndType(ctx)}")
-    // todo: if fork is different.
-    mkDefaultFinalSt(ctx)
+    if ctx.forkes then
+        PreCode(s"s.asInstanceOf[${mkRecvType(ctx)}")
+    else mkDefaultFinalSt(ctx)
 
   protected def mkDefaultFinalSt(ctx:RoleCtx):Statement =
     val args =
@@ -105,9 +202,10 @@ object GlobalMethod:
   protected def mkRecvCaseReturn(ctx:RoleCtx):Statement =
     val channelDef      = PreCode(s"var $ch:Seq[Channel] = Seq()")
     val channels2Read   = mkChannels2Read(ctx)
+    val funDef          = PreCode("var s:Any = null")
     val readMatch       = mkRecvMatchOnInput(ctx)
     val endSt           = TName(className(ctx.agent),None) // todo
-    Statements(channelDef::channels2Read::readMatch::Nil)
+    Statements(channelDef::channels2Read::funDef::readMatch::Nil)
 
   // if certain actions enabled => corresponding channel to read
   protected def mkChannels2Read(ctx:RoleCtx):Statement =
@@ -125,7 +223,7 @@ object GlobalMethod:
         (chan,vars) <- variablesByChannel
         condStr = vars.mkString(" || ")
       yield
-        IfThenElse(PreCode(condStr),PreCode(s"$ch = $ch :+ $chan"))
+        IfThenElse(PreCode(condStr),PreCode(s"$ch = $ch :+ net.$chan"))
     // all if then elses
     NoSepStatements(channels2Read.toList)
 
@@ -139,14 +237,16 @@ object GlobalMethod:
     Match(in().toString::Nil,caseRead::Nil)
 
   protected def mkInstantiateReadSbj(ctx:RoleCtx):Statement =
-    val recvs = ctx.localCtx.foldLeft[List[InOut]](List[InOut]())({
-        case (acc, lc) => acc++lc.getAllSendEventsCtx.map(e=>e.act)
+    val recvs = ctx.localCtx.foldLeft[List[(String,String)]](List())({
+        case (acc, lc) => acc++lc.getAllRecvEventsCtx
+          .map(e=>(chanName(e.act),roleName(sbj(e.act))))
       })
+    val recvsByCh =  recvs.groupMap(_._1)(_._2)
     val instantiateReadSbj =
       for
-        r     <- recvs.distinct
-        cond  = PreCode(s"$chanRead == net.${chanName(r)}")
-        ok    = PreCode(s"$sbjRead = ${roleName(sbj(r))}")
+        (ch,r) <- recvsByCh.toList //recvs.distinct
+        cond  = PreCode(s"$chanRead == net.$ch")
+        ok    = PreCode(s"$sbjRead = ${r.head}")
       yield
         IfThenElse(cond,ok)
     NoSepStatements(instantiateReadSbj)
@@ -218,15 +318,16 @@ object GlobalMethod:
     BlockStatement(NoSepStatements(matchSt::nextState::Nil))
 
   protected def mkNextState(ctx:RoleCtx, localSts:List[Statement]):Statement =
-    FunCall(className(ctx.agent),Nil,localSts:+Variable("net"))
+    FunCall(ctx.name,Nil,localSts:+Variable("net"))
 
   protected def mkSendCases(ctx:RoleCtx):List[Case] =
     // get sends across all local options
     val sends:List[InOut] = ctx.localCtx.foldLeft[List[InOut]](List[InOut]())({
       case (acc, lc) => acc++lc.getAllSendEventsCtx.map(e=>e.act)
     })
+    val sendsBySbj = sends.groupBy(s=>sbj(s))
     // case for each unique send
-    for  send <- sends.distinct yield mkSendCase(send)
+    for  (_,send) <- sendsBySbj.toList yield mkSendCase(send.head)
 
   protected def mkSendCase(act:InOut):Case =
     // case TO => out(net.FROMTO, m)
@@ -264,7 +365,7 @@ object GlobalMethod:
     // type resturn by each local send
     val locaSendsType = mkTypeOfLocalSends(ctx)
     // condition type to check if send executes well
-    val cond = locaSendsType.tail.foldLeft[TExp](locaSendsType.head)({
+    val cond = locaSendsType.tail.foldLeft[TExp](isErrorType(locaSendsType.head))({
       case (acc,st) => andType(acc,isErrorType(st))
     })
     // return type if send executes well
@@ -272,9 +373,9 @@ object GlobalMethod:
     ITEType(cond,TUnit,returnType)
 
   protected def mkTypeOfLocalSends(ctx:RoleCtx):List[TExp] =
-    implicit val builder:MethodBuilder = RecvBuilder
+    implicit val builder:MethodBuilder = SendBuilder
     for (lc,i) <- ctx.localCtx.zipWithIndex yield
-      TName(mkMatchTypeName(lc),Some(stateVar+(i+1)::rtype::mtype::Nil))
+      TName(mkMatchTypeName(lc),Some(stateTVar+(i+1)::rtype::mtype::Nil))
 
   /* helpers */
 
@@ -308,4 +409,5 @@ object GlobalMethod:
   protected def tryCatch(st:Statement):Statement =
     TryCatch(st,PreCode("case _: ClassCastException => ()"))
 
-
+  protected def simplifyType(list:List[TExp]):TExp =
+    TNameLn("Simplify",TTupleLn(list)::Nil)

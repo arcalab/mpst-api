@@ -35,7 +35,7 @@ object MermaidNPomset:
     s"""
        |flowchart TB
        | classDef lbl fill:#fff;
-       | ${ps.map(p=>mkPomset(p.simplified)).mkString("\n")}
+       | ${ps.map(p=>mkPomset(p.simplifiedFull)).mkString("\n")}
        |""".stripMargin
 
   /** Generate a Mermaid diagram that represents a network of `NPomset`

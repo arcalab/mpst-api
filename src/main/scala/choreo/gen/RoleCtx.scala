@@ -10,4 +10,6 @@ case class RoleCtx(
   name:String,
   agent:Agent,
   localCtx:List[RoleLocalCtx]
-)
+):
+  def forkes:Boolean =
+    localCtx.size == 1 && localCtx.head.forkJoin.isDefined
