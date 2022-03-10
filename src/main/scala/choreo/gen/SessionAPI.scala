@@ -75,11 +75,13 @@ object SessionAPI:
          |    case EmptyTuple | Unit  => EmptyTuple
          |    case Unit *: t          => RemoveUnit[t]
          |    case h *: t             => h *: RemoveUnit[t]
+         |    case _                  => X
          |
          |  type Simplify[X] = RemoveUnit[X] match
          |    case EmptyTuple      => Unit
          |    case h *: EmptyTuple => h
          |    case h *: t          => RemoveUnit[X]
+         |    case _               => X
          |
          |  type IfThenElse[A, B, C] = A match
          |    case true  => B

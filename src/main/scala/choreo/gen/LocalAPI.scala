@@ -14,7 +14,7 @@ object LocalAPI:
     LocalAPI(clas,co)
 
   val stateVar = "x"
-  val stateTVar = "X"
+  val stateTVar = "_X"
   val localVar  = "v"
 
   // use instance

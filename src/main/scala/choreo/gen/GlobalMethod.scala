@@ -26,11 +26,11 @@ object GlobalMethod:
 
 
   // recipient variable
-  protected val rtype = "P"
+  protected val rtype = "_P"
 
   // message variable
   protected val m = "m"
-  protected val mtype = "M"
+  protected val mtype = "_M"
 
 
   // receive continuation function name
@@ -148,10 +148,10 @@ object GlobalMethod:
     val recvBySbjMsg = recvs.groupBy(r=>(sbj(r),msgName(r)))
     val uniqueRecvs = recvBySbjMsg.map(r=>r._2.head)
     // types of local receives
-    val recvsType = for r <- uniqueRecvs yield mkTypeOfLocalRecv(r,ctx)
+    val recvsType = for r <- uniqueRecvs yield (r->mkTypeOfLocalRecv(r,ctx))
     // ITEs
 
-    for (r,rt) <- recvs.zip(recvsType) yield
+    for (r,rt) <- recvsType.toList yield //recvs.zip(recvsType) yield
       mkRecvArgTypeSimplifyITE(r,rt,ctx)
 
   protected def mkRecvArgTypeSimplifyITE(r:InOut,localRecvTypes:List[TExp],ctx:RoleCtx):TExp =

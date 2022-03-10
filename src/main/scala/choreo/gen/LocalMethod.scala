@@ -24,13 +24,13 @@ object LocalMethod:
     s"""${ctx.name}$$${builder.name.capitalize}"""
 
   // recipient variable
-  protected lazy val rtype = "P"
+  protected lazy val rtype = "_P"
   // message variable
   protected lazy val m = "m"
-  protected lazy val mtype = "M"
+  protected lazy val mtype = "_M"
   // state variable
   protected lazy val x = "x"
-  protected lazy val xtype = "X"
+  protected lazy val xtype = "_X"
 
   protected lazy val tVariables = xtype::rtype::mtype::Nil
 
