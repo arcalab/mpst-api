@@ -12,7 +12,7 @@ import choreo.Utils
 import choreo.realisability.CC._
 
 /**
- * Created by guillecledou on 07/07/2021
+ * Created by   on 07/07/2021
  */
 object ICPOM:
   /**

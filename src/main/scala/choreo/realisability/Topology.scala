@@ -5,7 +5,7 @@ import choreo.npomsets.NPomset
 import choreo.common.MRel._
 
 /**
- * Created by guillecledou on 01/07/2021
+ * Created by   on 01/07/2021
  */
 
 /** Top-down hierarchy between elements */

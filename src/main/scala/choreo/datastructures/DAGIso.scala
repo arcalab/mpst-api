@@ -8,7 +8,7 @@ import choreo.datastructures.DAG
 import choreo.datastructures.DAG._
 
 /**
- * Created by guillecledou on 06/07/2021
+ * Created by   on 06/07/2021
  */
 
 object DAGIso:

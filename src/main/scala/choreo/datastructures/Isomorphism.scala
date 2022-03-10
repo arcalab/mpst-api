@@ -3,7 +3,7 @@ package choreo.datastructures
 import choreo.datastructures.Isomorphism.IsoResult
 
 /**
- * Created by guillecledou on 12/07/2021
+ * Created by   on 12/07/2021
  */
 
 //trait Isomorphic[S1,S2]:

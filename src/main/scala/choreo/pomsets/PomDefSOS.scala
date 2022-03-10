@@ -6,7 +6,7 @@ import choreo.pomsets.Label._
 import choreo.syntax.Choreo.Action
 import caos.sos.SOS
 /**
- * Created by guillecledou on 18/03/2021
+ * Created by   on 18/03/2021
  * 
  * Global semantics for pomsets that removes executed events.
  */

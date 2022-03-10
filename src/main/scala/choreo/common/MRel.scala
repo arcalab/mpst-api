@@ -109,7 +109,7 @@ object MRel:
     reduced
 
 
-  // todo: @Guille: maybe move these subTrees to DAG?
+  // todo:  : maybe move these subTrees to DAG?
   def subTree[A](e:A)(using o:MR[A,A]):MR[A,A] =
     subTree(Set(e))
   //    var toVisit = o.getOrElse(e,Set())

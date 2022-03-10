@@ -6,7 +6,7 @@ import scala.util.matching.Regex
 import scala.util.parsing.combinator.RegexParsers
 
 /**
- * Created by guillecledou on 10/02/2021
+ * Created by   on 10/02/2021
  */
 
 /** Parser for [[Choreo]] expressions. */

@@ -7,7 +7,7 @@ import choreo.pomsets.Label._
 import choreo.pomsets.Pomset._
 
 /**
- * Created by guillecledou on 19/03/2021
+ * Created by   on 19/03/2021
  */
 
 sealed trait Label:

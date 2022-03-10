@@ -7,7 +7,7 @@ import choreo.datastructures.DAG._
 import choreo.datastructures.Isomorphism.IsoResult
 
 /**
- * Created by guillecledou on 12/07/2021
+ * Created by   on 12/07/2021
  */
 
 object NPomDAG:

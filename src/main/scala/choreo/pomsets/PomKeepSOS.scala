@@ -7,7 +7,7 @@ import caos.sos.SOS
 import choreo.syntax.Choreo.Action
 
 /**
- * Created by guillecledou on 02/02/2021
+ * Created by   on 02/02/2021
  * 
  * Global semantics for pomsets that keeps executed events, 
  * relabelling them to the empty pomset.

@@ -1,7 +1,7 @@
 package choreo.view
 
 /**
- * Created by guillecledou on 31/10/2020
+ * Created by   on 31/10/2020
  */
 
 trait Dot[-A]:

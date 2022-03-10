@@ -5,7 +5,7 @@ import choreo.syntax.{Choreo, Msg}
 import choreo.syntax.Choreo._
 
 /**
- * Created by guillecledou on 10/02/2021
+ * Created by   on 10/02/2021
  */
 
 object SequenceChart:

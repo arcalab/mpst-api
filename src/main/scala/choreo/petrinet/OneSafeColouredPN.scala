@@ -10,7 +10,7 @@ import choreo.syntax.{Agent, Msg}
 import choreo.syntax.Choreo.{In, Out}
 
 /**
- * Created by guillecledou on 30/01/2022
+ * Created by   on 30/01/2022
  */
 
 /**

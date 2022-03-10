@@ -13,7 +13,7 @@
 //import cats.implicits._
 //
 ///**
-// * Created by guillecledou on 06/07/2021
+// * Created by   on 06/07/2021
 // *
 // * Emilio's definition of realisability, adapted to nested pomsets
 // */

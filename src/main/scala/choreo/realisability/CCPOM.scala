@@ -11,7 +11,7 @@ import choreo.realisability.{ICPOM,CC,ICNPOM}
 import CC._
 
 /**
- * Created by guillecledou on 12/07/2021
+ * Created by   on 12/07/2021
  */
 
 object CCPOM:

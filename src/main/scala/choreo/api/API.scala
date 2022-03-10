@@ -9,7 +9,7 @@ import choreo.api.API.*
 import java.io.{File, FileWriter}
 
 /**
- * Created by guillecledou on 30/01/2022
+ * Created by   on 30/01/2022
  *
  * One safe coloured petri net to Scala API
  */

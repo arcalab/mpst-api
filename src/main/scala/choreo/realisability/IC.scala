@@ -1,7 +1,7 @@
 //package choreo.realisability
 //
 ///**
-// * Created by guillecledou on 12/07/2021
+// * Created by   on 12/07/2021
 // */
 //import choreo.npomsets.NPomset
 //import choreo.npomsets.NPomset.{Actions, Event, Order, add, invert, toPair}
@@ -15,7 +15,7 @@
 //
 //
 ///**
-// * Created by guillecledou on 07/07/2021
+// * Created by   on 07/07/2021
 // */
 //object IC:
 //

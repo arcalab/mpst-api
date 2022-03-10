@@ -9,7 +9,7 @@ import choreo.datastructures.Isomorphism.IsoResult
 
 
 /**
- * Created by guillecledou on 06/07/2021
+ * Created by   on 06/07/2021
  */
 
 case class DAG[N](nodes:Set[N], edges:MR[N,N]):

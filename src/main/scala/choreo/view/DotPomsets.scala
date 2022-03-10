@@ -8,7 +8,7 @@ import choreo.syntax.Choreo.{Action, In, Out}
 
 
 /**
- * Created by guillecledou on 31/10/2020
+ * Created by   on 31/10/2020
  */
 
 

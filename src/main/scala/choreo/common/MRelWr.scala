@@ -92,7 +92,7 @@ object MRelWr:
       reduced = reduced.updated(e1,reduced(e1)--reachable(e2))
     MRelWr(reduced)
 
-  // todo: @Guille: maybe move these subTrees to DAG?
+  // todo:  : maybe move these subTrees to DAG?
   def subTree[A](e:A, o:MRelWr[A,A]):MRelWr[A,A] =
     subTree(Set(e),o)
   //    var toVisit = o.getOrElse(e,Set())

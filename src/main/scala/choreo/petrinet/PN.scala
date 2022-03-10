@@ -4,7 +4,7 @@ import choreo.petrinet.PN.*
 import choreo.syntax.Choreo.{In, Out}
 
 /**
- * Created by guillecledou on 14/02/2022
+ * Created by   on 14/02/2022
  */
 @deprecated
 case class PN(places: Set[Place],

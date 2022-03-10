@@ -9,7 +9,7 @@ import choreo.npomsets.NPomset._
 
 
 /**
- * Created by guillecledou on 12/07/2021
+ * Created by   on 12/07/2021
  */
 
 object NPomIso:

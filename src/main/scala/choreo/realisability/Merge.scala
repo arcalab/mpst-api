@@ -9,7 +9,7 @@ import choreo.common.MRel._
 
 
 /**
- * Created by guillecledou on 14/09/2021
+ * Created by   on 14/09/2021
  */
 
 object Merge:
