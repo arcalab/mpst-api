@@ -124,23 +124,47 @@ object Examples:
       ""
     ):: Example(
       "// Ex. 1\n" +
-      "(a->b:M1 ; (a->b:N1 || a->b:N2) || \n a->b:M2) ; a->b:End",
+      "(a->b:M1 . (a->b:N1 || a->b:N2) || \n a->b:M2) . a->b:End",
       "Ex. 1",
       ""
     ):: Example(
       "// Ex. 2\n" +
-        "a->b:M1 ; (a->b:N1 || a->b:N2) || \n a->b:M2",
+        "a->b:M1 . (a->b:N1 || a->b:N2) || \n a->b:M2",
       "Ex. 2",
       ""
     ):: Example(
       "// Ex. 3\n" +
-        "a->b:M ; (a->b:M1 || a->b:M2) ; \n a->b:End",
+        "a->b:M . (a->b:M1 || a->b:M2) . \n a->b:End",
       "Ex. 3",
       ""
     ):: Example(
       "// Ex. 4\n" +
-        "a->b:M ; (a->b:M1 || a->b:M2)",
+        "a->b:M . (a->b:M1 || a->b:M2)",
       "Ex. 4",
       ""
-    )::dummy
+    ):: Example(
+      s"""a->b:x + a->b:y""",
+      "Ex. 5","Simple realisable choice"
+    ):: Example(
+      s"""a->b:x . b->c:z +
+         |a->c:y . c->b:w""".stripMargin,
+      "Ex. 6","Less simple realisable choice"
+    ):: Example(
+      s"""a->b:x + c->d:x""",
+      "Ex. 7","Simple unrealisable choice"
+    ):: Example(
+      s"""(a->b:x || c->b:x). a->b:z +
+         |a->b:y . c->b:y . a->b:z""".stripMargin,
+      "Ex. 8","Complex unrealisable protocol"
+    ):: Example(
+      "// Ex. 9\n" +
+        "a->b:M . (a->b:M1 || a->b:M2) . \n a->b:End1 || a->b:End2",
+      "Ex. 9",
+      ""
+    ):: Example(
+      "// Ex. 10\n" +
+        "a->b:M . (a->b:M1 || a->b:M2) . \n a->b:M3 . a->b:End1 ||\n a->b:End2",
+      "Ex. 10",
+      ""
+    )::Nil
 

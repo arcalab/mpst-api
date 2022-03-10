@@ -55,30 +55,45 @@ object APICaos extends Configurator[Choreo]:
     //"Project NPomset"
     //  -> Visualize(viewNPomsMerm, Mermaid, chor2npom(_).projectAll),
     "Sequence Diagram"
-      -> Visualize(viewChorMerm,Mermaid,id),
+      -> view(SequenceChart.apply,Mermaid), //Visualize(viewChorMerm,Mermaid,id),
+    //    "Global Set of Pomsets"
+    //      -> VisualizeOpt(showRef,Mermaid,chor2npom(_).refinements),
+    //    "Projected Set of Pomsets"
+    //      -> VisualizeOpt(showRefProj,Mermaid,chor2npom(_).refinementsProj),
     "Global Set of Pomsets"
-      -> VisualizeOpt(showRef,Mermaid,chor2npom(_).refinements),
+      -> viewMerms( c =>
+      chor2npom(c).refinements.zipWithIndex.map((p,n) => s"Pom ${n+1}"->MermaidNPomset(p))),
     "Projected Set of Pomsets"
-      -> VisualizeOpt(showRefProj,Mermaid,chor2npom(_).refinementsProj),
-    "Weak Realisability - CC2-POM "
-      -> Visualize((r:CCPomInfo)=>View(CC.ppcc2(r)),Text,chor2npom(_).cc2),
-    "Safe Realisability - CC3-POM "
-      -> Visualize((r:CCPomInfo)=>View(CC.ppcc3(r)),Text,chor2npom(_).cc3),
+      -> viewMerms( c =>
+      chor2npom(c).refinementsProj.zipWithIndex.map((ps,n) => s"Pom ${n+1}"->MermaidNPomset(ps))),
+    //    "Weak Realisability - CC2-POM "
+    //      -> view(c => CC.ppcc2(chor2npom(c).cc2), Text),
+    //         //Visualize((r:CCPomInfo)=>View(CC.ppcc2(r)),Text,chor2npom(_).cc2),
+    //    "Safe Realisability - CC3-POM "
+    //      -> view(c => CC.ppcc3(Choreo2NPom(c).cc3), Text),
+    //         //Visualize((r:CCPomInfo)=>View(CC.ppcc3(r)),Text,chor2npom(_).cc3),
+    "Realisability"
+      -> viewTabs( (c:Choreo) => List(
+      "Summary" -> {
+        val (cc2,cc3) = (CC.iscc2(chor2npom(c).cc2),CC.iscc3(chor2npom(c).cc3))
+        s"The global choreography${if cc2 && cc3 then " IS" else " is NOT"} fully realisable."+
+          (if !cc2 then s"\n  - it is NOT weakly realisable" else "")+
+          (if !cc3 then s"\n  - it is NOT safely realisable" else "")},
+      "Weak Realisability (CC2-Pom)" -> CC.ppcc2(chor2npom(c).cc2),
+      "Safe Realisability (CC2-Pom)" -> CC.ppcc3(chor2npom(c).cc3)
+      ), Text),
+    "Scala APIs"
+      -> viewTabs((c:Choreo) =>
+      val session = SessionAPI(chor2npom(c));
+      session.modulesToCode:::List("All"->session.toString),
+      Text)
 //    "Scala APIs"
 //      -> VisualizeTab(
-//      (s:Session)=> s.modulesToCode.map(m=>View(m._2)):+View(s.toString),
-//      //(s:Session)=> s.modulesToCode.map(m=>View(choreo.api.Examples.dummyCode)):+View(s.toString),
+//      (s:SessionAPI)=>s.modulesToCode.map(m=>View(m._2)):+View(s.toString),
 //      Text,
-//      (s:Session)=>s.modulesToCode.map(p=>p._1):+"All",
-//      (c:Choreo)=>Session(chor2npom(c))
-//    )
-    "Scala APIs"
-      -> VisualizeTab(
-      (s:SessionAPI)=>s.modulesToCode.map(m=>View(m._2)):+View(s.toString),
-      Text,
-      (s:SessionAPI)=>s.modulesToCode.map(p=>p._1):+"All",
-      (c:Choreo)=>SessionAPI(chor2npom(c))
-    ),
+//      (s:SessionAPI)=>s.modulesToCode.map(p=>p._1):+"All",
+//      (c:Choreo)=>SessionAPI(chor2npom(c))
+//    ),
     //"Simulate NPomset Network"
     //  -> simulateNet(NPomDefSOS,(p:NPomset)=>View(p.toString),NPomDefProj,chor2npom) ,
 
