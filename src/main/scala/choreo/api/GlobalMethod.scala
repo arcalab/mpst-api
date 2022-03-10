@@ -1,10 +1,10 @@
-package choreo.gen
+package choreo.api
 
 import choreo.api.MiniScala.*
-import choreo.gen.LocalMethod.*
-import choreo.gen.LocalAPI.*
-import choreo.gen.NPom2SessionCtx.{ForkInfo, forkEvent}
-import choreo.gen.SessionAPI.*
+import choreo.api.NPom2SessionCtx.{ForkInfo, forkEvent}
+import choreo.api.LocalAPI.*
+import choreo.api.LocalMethod.*
+import choreo.api.SessionAPI.*
 
 
 case class GlobalMethod(methodDef:MethodDef,methodTypeTDef:Statement):

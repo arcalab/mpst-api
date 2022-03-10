@@ -15,8 +15,8 @@ import caos.sos.SOS.*
 import Network.*
 import caos.view.*
 import choreo.analysis.{SyntAnalysis, WellBranched, WellChannelled}
-import choreo.frontend.ChoreoSOSme.chor2npom
-import choreo.gen.SessionAPI
+import choreo.api.SessionAPI
+//import choreo.frontend.ChoreoSOSme.chor2npom
 //import choreo.api.{API, LocalAPI, Session}
 import choreo.npomsets.{Choreo2NPom, NPomDAG, NPomDefSOS, NPomset}
 import choreo.realisability.{CC, CCPOM, ICNPOM, Merge}

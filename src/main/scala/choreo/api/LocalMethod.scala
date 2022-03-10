@@ -1,11 +1,10 @@
-package choreo.gen
+package choreo.api
 
-
-import choreo.gen.NPom2SessionCtx.Event2Value
+import choreo.api.EventsCtx.EventCtx
 import choreo.api.MiniScala.*
-import choreo.gen.EventsCtx.EventCtx
+import choreo.api.NPom2SessionCtx.Event2Value
+import choreo.api.SessionAPI.*
 import choreo.syntax.Choreo.In
-import choreo.gen.SessionAPI.{chanName, mkPattern, msgName, sbj, roleName}
 
 import scala.collection.immutable.HashMap
 

@@ -1,8 +1,8 @@
-package choreo.gen
+package choreo.api
 
 import choreo.api.MiniScala.*
-import choreo.gen.NPom2SessionCtx.{ForkInfo, JoinInfo, RegionInfo, forkEvent}
-import choreo.gen.SessionAPI.*
+import choreo.api.NPom2SessionCtx.{ForkInfo, JoinInfo, RegionInfo, forkEvent}
+import choreo.api.SessionAPI.*
 
 case class LocalAPI(clas:ScalaClass,co:ScalaObject)
 

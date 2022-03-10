@@ -1,15 +1,15 @@
-package choreo.gen
+package choreo.api
 
+import choreo.api
 import choreo.api.Code
 import choreo.api.MiniScala.*
-import choreo.gen.NPom2SessionCtx
-import choreo.gen.NPom2SessionCtx.*
-import choreo.gen.LocalAPI.*
-import choreo.gen.SessionAPI.mkImports
+import choreo.api.NPom2SessionCtx.*
+import choreo.api.LocalAPI.*
+import choreo.api.SessionAPI.mkImports
 import choreo.npomsets.NPomset
 import choreo.npomsets.NPomset.Event
-import choreo.syntax.{Agent, Msg}
 import choreo.syntax.Choreo.{In, Out, agents}
+import choreo.syntax.{Agent, Msg}
 
 import scala.collection.immutable.HashMap
 
@@ -26,7 +26,7 @@ object SessionAPI:
   type InOut = In | Out
 
   def apply(npom:NPomset):SessionAPI =
-    val ctx       = NPom2SessionCtx(npom)
+    val ctx       = api.NPom2SessionCtx(npom)
     val localAPIs = for (a,roleCtx) <- ctx.roles yield LocalAPI(roleCtx)
     val modules = localAPIs.map(api=>ScalaModule(api.clas.name,Statements(api.clas::api.co::Nil)))
     val extras = mkRoles(ctx)::mkNetwork(ctx)::mkProtocol(ctx)::mkMsgs(ctx)::mkUtils()::Nil
