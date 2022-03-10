@@ -85,7 +85,7 @@ object APICaos extends Configurator[Choreo]:
     "Scala APIs"
       -> viewTabs((c:Choreo) =>
       val session = SessionAPI(chor2npom(c));
-      session.modulesToCode:::List("All"->session.toString),
+      session.getModulesNameWithCode:::List("All"->session.toString),
       Text)
 //    "Scala APIs"
 //      -> VisualizeTab(

@@ -77,7 +77,7 @@ object LocalMethod:
     Case(casePattern,caseType,returnSt,Some(comment))
 
   protected def mkCaseComment(eventCtx:EventCtx):String =
-    s"""// ${eventCtx.act.toString}"""
+    s"""${eventCtx.e}:${eventCtx.act.toString}"""
 
   protected def mkCaseExpectedValues(eventCtx:EventCtx,ctx:RoleLocalCtx):(List[String],List[String]) =
     val defaultStValue  = ctx.event2Param//ctx.events.map(e=>e->"_").toMap
@@ -130,7 +130,8 @@ object LocalMethod:
     val caseType    = mkCasePatternType(stateValues,commValues)
     // return type expression if it matches
     val returnTExp  = mkMatchTypeCaseReturnTExp(eventCtx,ctx)
-    MatchTypCase(caseType,returnTExp)
+    val comment = mkCaseComment(eventCtx)
+    MatchTypCase(caseType,returnTExp,Some(comment))
 
   protected def mkMatchTypeCaseReturnTExp(eventCtx: EventCtx,ctx: RoleLocalCtx):TExp =
     val returnTypeNames = mkPattern(ctx.events,eventCtx.post,ctx.event2Param)
@@ -140,11 +141,9 @@ object LocalMethod:
   protected def mkComment(ctx:RoleLocalCtx)(implicit builder: MethodBuilder):String =
     val participant = ctx.agent.s
     val pomset      = ctx.name
-    val actions     = builder.getEventsCtx(ctx).map(r=> (r.e.toString,r.act.toString))
+//    val actions     = builder.getEventsCtx(ctx).map(r=> r.e.toString+":"+r.act.toString)
     val method      = if builder.name == "recv" then "Receive" else "Send"
-    s"""$method method for participant $participant in Local Pomset [[${ctx.name}]]
-       |Captures the behaviour of the following actions:
-       |${actions.mkString(",")}""".stripMargin
+    s"""$method method for participant $participant in Local Pomset ${pomset}""".stripMargin
 
   sealed trait MethodBuilder:
     def name:String

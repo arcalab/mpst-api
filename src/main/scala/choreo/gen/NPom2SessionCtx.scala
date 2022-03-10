@@ -41,7 +41,6 @@ object NPom2SessionCtx:
       for e <- pom.events.toSet.toList.sorted yield
         mkEventCtx(e,pom)
     val forkJoin = if single then getForkJoinInfo(pom) else None
-    if forkJoin.isDefined then println(forkJoin.get)
     val extraEvents = if forkJoin.isDefined then forkEventCtx::Nil else Nil
     RoleLocalCtx(optionClassName(agent,index),agent, events, extraEvents,forkJoin)
 
@@ -128,18 +127,18 @@ object NPom2SessionCtx:
     visited:Set[Event]
   ):
     def addFork(e:Event,f:Fork):TraverseInfo =
-      println(s"new fork $f")
+//      println(s"new fork $f")
       this.copy(forks = forks+(e->f),visited= visited+e)
     def addJoin(e:Event,j:Join):TraverseInfo =
-      println(s"new join $j")
+//      println(s"new join $j")
       if joins.isDefinedAt(e) then
         val old = joins(e)
         val upd = Join(old.point,old.regions++j.regions)
-        println(s"it updates old: $old with $upd")
+//        println(s"it updates old: $old with $upd")
         this.copy(joins = joins+(e->upd),visited = visited+e)
       else this.copy(joins = joins+(e->j),visited = visited+e)
     def addLast(e:Event,r:Int):TraverseInfo =
-      println(s"new last $e waiting for region $r")
+//      println(s"new last $e waiting for region $r")
       this.copy(last = last+(e->r),visited = visited+e)
     def getForks:List[Fork] = forks.values.toList
     def getJoins:List[Join] = joins.values.toList

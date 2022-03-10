@@ -30,12 +30,37 @@ object LocalAPI:
     val fork          = mkFork(ctx)
     if fork.isDefined then
       methods = Statements(methods.statements:+fork.get.methodDef)
+      objStatements :+= mkEndTypeDefIfFork(ctx)
       objStatements :+= fork.get.methodTypeTDef
       objStatements ++= mkJoins(ctx)
-    val comment     = ""
+    val comment     = mkGlobalComment(ctx)
     val extendsWith = "UseOnce"
+    val init = mkInitTypeDef(ctx)
     val clas = ScalaClass(name,typeVars,parameters,Some(methods),Some(comment),extendsWith::Nil)
-    (clas,Statements(objStatements))
+    (clas,Statements(init::objStatements))
+
+  protected def mkGlobalComment(ctx:RoleCtx):String =
+    s"""Main class for participant ${className(ctx.agent)}""".stripMargin
+
+  protected def mkInitTypeDef(ctx:RoleCtx):TypeDef =
+    val name  = TName(ctx.name+"$Init")
+    val typVars = mkLocalInitParams(ctx)
+    TypeDef(name,TName(ctx.name,Some(typVars.map(_.toString))))
+
+  def mkInitTypeInstance(ctx:RoleCtx):Statement =
+    val name  = TName(ctx.name+"$Init")
+    val values =
+      for lc <- ctx.localCtx yield
+        val stateVals = for e <- lc.eventsCtx yield e.initialVal
+        val extraVals = for e <- lc.extEventsCtx yield e.initialVal
+        Tuple((stateVals++extraVals).map(v=>Variable(v)))
+    FunCall(ctx.name,Nil,values++List(Variable("net")))
+
+  protected def mkLocalInitParams(ctx:RoleCtx):List[TExp] =
+    for lc <- ctx.localCtx yield
+      val stateVals = for e <- lc.eventsCtx yield e.initialVal
+      val extraVals = for e <- lc.extEventsCtx yield e.initialVal
+      TTuple((stateVals++extraVals).map(v=>TName(v)))
 
   protected def mkTVars(ctx:RoleCtx):List[(String,Option[String])] =
     for i <- (1 to ctx.localCtx.size).toList yield (stateTVar+i, Option.empty[String])
@@ -78,7 +103,7 @@ object LocalAPI:
     MethodDef("fork",Nil,Nil,ev,Some(returnType),st,None)
 
   protected def mkForkSt(ctx:RoleCtx):Statement =
-    val pattern = stateVar::Nil
+    val pattern = stateVar+1.toString::Nil
     val cases = mkForkCases(ctx)
     val matchSt = Match(pattern,cases)
     NoSepStatements(use::matchSt::Nil)
@@ -176,8 +201,21 @@ object LocalAPI:
     val net = Variable(s"s${j.regions.head}.net")
     FunCall(ctx.name,Nil,stArgs::net::Nil)
 
+  protected def mkDefaultFinalType(ctx:RoleCtx):TExp =
+    val args =
+      for lc <- ctx.localCtx yield
+        TTuple(for i <- (1 to lc.eventsCtx.size).toList yield TName("false")).toString
+    TName(ctx.name, Some(args))
+
+  protected def mkEndTypeDefIfFork(ctx:RoleCtx):TypeDef =
+      val lc = ctx.localCtx.head
+      val defaultValues = lc.events.map(e=>e->"false").toMap
+      val argValues = mkPattern(lc.events,Map(forkEvent->"0"),defaultValues)
+      val args = TTuple(argValues.map(v=>TName(v)))
+      val endType = TName(ctx.name,Some(args.toString::Nil))
+      TypeDef(TName(ctx.name+"$Final"),endType)
 
 
   def mkEndType(ctx:RoleCtx):TExp =
-    TName(className(ctx.agent)+"$Final",None)
+    TName(ctx.name+"$Final",None)
 

@@ -2,12 +2,19 @@ package choreo.api
 
 import choreo.api.Code
 
+
 import java.util.concurrent.locks.StampedLock
 
 // todo: needs to be rethought
 object MiniScala:
 
+  case class ScalaModule(name:String, statements:Statement) extends Code:
+    def toCode(implicit i: Int): String =
+      statements.toCode
+
+
   trait Statement extends Code
+
 
   case class Statements(statements:List[Statement]) extends Statement:
 
@@ -24,7 +31,7 @@ object MiniScala:
   case class BlockStatement(statement: Statement) extends Statement:
     def toCode(implicit i: Int): String = ind(i) + "{\n" ++ statement.toCode(i+1) ++ "\n" + ind(i) ++"}"
 
-  case class PreCode(code:String) extends Statement:
+  case class PreCode(code:String) extends Statement with TExp:
     def toCode(implicit i: Int): String =
       val lines = code.split("\n")
       lines.map(l => ind(i)+l).mkString("\n")
@@ -58,16 +65,17 @@ object MiniScala:
 
     def toCode(implicit i: Int): String =
       //val tvars = typeVariables.zip(typeVariablesTExp)
+      val com = if comment.isDefined then comment(comment.get)+"\n" else ""
       val c = if caseClass then "case " else ""
       val extension = if extendsWith.isEmpty then "" else s" extends ${extendsWith.mkString(",")}"
       val classDef = s"""${c}class $name${brackets(mkTVars())(i+1)}""" ++
-          s"""${params(parameters.map(_.toString))(i+1)}"""
+          (if parameters.isEmpty then "" else  s"""${params(parameters.map(_.toString))(i+1)}""")
       val body = if statements.isDefined then statements.get.toCode(i+1) else ""
 
       if body.nonEmpty then
-        ind(i) ++ classDef ++ s"$extension:\n\n" ++ body
+        com ++ ind(i) ++ classDef ++ s"$extension:\n\n" ++ body
       else
-        ind(i) ++ classDef ++ extension
+        com ++ ind(i) ++ classDef ++ extension
 
     def mkTVars():List[String] =
       typeVariables.map(t =>
@@ -85,15 +93,16 @@ object MiniScala:
 
     def toCode(implicit i: Int): String =
       val extension = if extendsWith.isEmpty then "" else s" extends ${extendsWith.mkString(",")}"
-      val com =
-        if comment.isDefined then
-          s"""/**
-             |${comment.get.split("\n").map(l=>ind(i)++" * "++l).mkString("\n")}
-             |*/
-             |
-             |""".stripMargin
-        else ""
-      ind(i) ++ com ++ s"""object $name$extension""" ++
+      val com = if comment.isDefined then comment(comment.get)+"\n" else ""
+//      val com =
+//        if comment.isDefined then
+//          s"""/**
+//             |${comment.get.split("\n").map(l=>ind(i)++" * "++l).mkString("\n")}
+//             |*/
+//             |
+//             |""".stripMargin
+//        else ""
+      com ++ ind(i) ++ s"""object $name$extension""" ++
         (if statements.isDefined then
           s":\n\n" ++ statements.get.toCode(i+1)
         else "")
@@ -108,9 +117,11 @@ object MiniScala:
     comment:Option[String],
     annotation:Option[String] = None
   ) extends Statement:
-    override def toCode(implicit i:Int):String = ind(i) ++
+    override def toCode(implicit i:Int):String =
+      val com = if comment.isDefined then comment(comment.get)+"\n" else ""
+      com ++ ind(i) ++
       (if annotation.isDefined then annotation.get ++"\n"++ind(i) else "") ++
-        s"""def $name${params(parameters.map(_.toString))(i+1)}${mkEvidence()(i+1)}${mkTExp()} =\n""" ++
+        s"""def $name${brackets(typeVariables)(i+1)}${params(parameters.map(_.toString))(i+1)}${mkEvidence()(i+1)}${mkTExp()} =\n""" ++
         statement.toCode(i+1)
 
     protected def mkTExp():String =
@@ -303,8 +314,9 @@ object MiniScala:
 //      if patternTyp.isDefined then ": " ++ patternTyp.get.toString else ""
 
       def toCode(implicit i:Int):String =
-      ind(i) ++ s"""case ${params(pattern,ln = false)}${mkPatternT()} =>\n""" ++
-        output.toCode(i+1)
+        val com = if comment.isDefined then singleComment(comment.get)+"\n" else ""
+        com ++ ind(i) ++ s"""case ${params(pattern,ln = false)}${mkPatternT()} =>\n""" ++
+          output.toCode(i+1)
 
       def mkPatternT():String =
         if patternTyp.nonEmpty then
@@ -325,11 +337,12 @@ object MiniScala:
       ).toList
 
 
-  case class MatchTypCase(pattern:List[String], output:TExp) extends Code:
+  case class MatchTypCase(pattern:List[String], output:TExp,comment:Option[String] = None) extends Code:
 //    def toCode(implicit i:Int):String =
 //      ind(i) ++ s"""case ${pattern.toCode} => $output"""
     def toCode(implicit i:Int):String =
-      ind(i) ++ s"""case ${params(pattern,ln = false)} => $output"""
+      val com = if comment.isDefined then singleComment(comment.get)+"\n" else ""
+      com ++ ind(i) ++ s"""case ${params(pattern,ln = false)} => $output"""
 //  case class MatchTypCase(pattern:List[String], output:TExp) extends Code:
 //    def toCode(implicit i:Int):String =
 //      ind(i) ++ s"""case ${params(pattern,ln = false)} => $output"""
