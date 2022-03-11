@@ -55,9 +55,28 @@ object Examples:
       |pr.run(seller)
       |pr.run(buyer)""".stripMargin
 
+  val relaxedBuyerSellerImpl:String =
+    """def seller(s: S$Initial): S$Final = s
+       |  .send(B, new Descr)
+       |  .send(B, new Price)
+       |  .recv(
+       |    (_, _, s) => { println("offer accepted"); s },
+       |    (_, _, s) => { println("offer rejected"); s }
+       |  )
+       |
+       |def buyer(s: B$Initial): B$Final = s
+       |  .recv(
+       |    (_, _, s) => s.recv((_, _, s) => s.send(S, new Acc)),
+       |    (_, _, s) => s.recv((_, _, s) => s.send(S, new Rej))
+       |  )
+       |
+       |val pr = new Protocol
+       |pr.run(seller)
+       |pr.run(buyer)
+       |""".stripMargin
+
   val masterWorkerImpl =
-     """
-       |def master(s: M$State$Init): M$State$Final =
+     """def master(s: M$State$Init): M$State$Final =
        |  val (s1, s2) = s.send(W1, Work).send(W2,  Work).fork()
        |  val f1 = Future { s1.recv((_, _, s) => { println("#1"); s }) }
        |  val f2 = Future { s2.recv((_, _, s) => { println("#2"); s }) }
@@ -82,6 +101,39 @@ object Examples:
        |pr.run(worker2)
        |""".stripMargin
 
+  val masterWorker3Impl =
+    """def master(s: M$State$Init): M$State$Final =
+      |  val (s1, s2, s3) = s.send(W1, Work).send(W2,  Work).send(W3, Work).fork()
+      |  val f1 = Future { s1.recv((_, _, s) => { println("#1"); s }) }
+      |  val f2 = Future { s2.recv((_, _, s) => { println("#2"); s }) }
+      |  val f3 = Future { s3.recv((_, _, s) => { println("#3"); s }) }
+      |  Await.result(
+      |    for { t1 <- f1; t2 <- f2 ; t3 <- f3 } yield M$State.join(t1, t2, t3),
+      |    Duration.Inf
+      |  )
+      |
+      |def worker1(s: W1$State$Init): W1$State$Final = s
+      |  .recv((_, _, s) => {
+      |    Thread.sleep(scala.util.Random.nextInt(1000)); s.send(M, Done)
+      |  })
+      |
+      |def worker2(s: W2$State$Init): W2$State$Final = s
+      |  .recv((_, _, s) => {
+      |    Thread.sleep(scala.util.Random.nextInt(1000)); s.send(M, Done)
+      |  })
+      |
+      |def worker3(s: W3$State$Init): W3$State$Final = s
+      |  .recv((_, _, s) => {
+      |    Thread.sleep(scala.util.Random.nextInt(1000)); s.send(M, Done)
+      |  })
+      |
+      |val pr = new Protocol
+      |pr.run(master)
+      |pr.run(worker1)
+      |pr.run(worker2)
+      |pr.run(worker3)
+      |""".stripMargin
+
   def htmlify(s:String):String =
     s.replace("\n","<br>")
 
@@ -102,20 +154,24 @@ object Examples:
       s"""// Buyer-Seller, Relaxed\n""" +
         "(s->b:Descr || s->b:Price) .\n(b->s:Acc + b->s:Rej)",
       "Buyer-Seller, Relaxed",
-      ""
+      s"""<strong>Buyer-Seller, Relaxed</strong>
+         |The code below is a possible implementation of a process that follows this protocol.
+         |<pre style="font-size: 1.1rem;">${htmlify(relaxedBuyerSellerImpl)}</pre>
+         |""".stripMargin
     ):: Example(
       s"""// 1 Master - 2 Workers, Relaxed\n""" +
         "m->w1:Work . m->w2:Work .\n(w1->m:Done || w2->m:Done)",
       "1Master-2Workers, Relaxed" ,
       s"""<strong>Master-Worker: relaxed protocol</strong>
-        |
         |The code below is a possible implementation of a process that follows this protocol, using forks and joins.
         |<pre style="font-size: 1.1rem;">${htmlify(masterWorkerImpl)}</pre>""".stripMargin
     ):: Example(
       s"""// 1 Master - 3 Workers, Relaxed\n""" +
         "m->w1:Work . m->w2:Work . m->w3:Work .\n(w1->m:Done || w2->m:Done || w3->m:Done)",
-      "1Master-3Workers, Relaxed" ,
-      ""
+      """1Master-3Workers, Relaxed""" ,
+      s"""<strong>Master - 3 Workers: relaxed protocol</strong>
+        |The code below is a possible implementation of a process that follows this protocol, using forks and joins.
+        |<pre style="font-size: 1.1rem;">${htmlify(masterWorker3Impl)}</pre>""".stripMargin
     ):: Example(
       "// Ex. 1\n" +
       "(a->b:M1 . (a->b:N1 || a->b:N2) || \n a->b:M2) . a->b:End",
