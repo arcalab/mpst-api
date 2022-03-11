@@ -224,11 +224,16 @@ object NPom2SessionCtx:
       traversInfo.addJoin(e, Join(One(e), List(r)))
     else traversInfo
 
-  sealed trait Split
+  sealed trait Split:
+    def getPoints:Set[Event] = this match
+      case One(e)   => Set(e)
+      case Many(es) => es
 
-  case class One(e: Event) extends Split
+  case class One(e: Event) extends Split:
+    override def toString: String = e.toString
 
-  case class Many(events: Set[Event]) extends Split
+  case class Many(events: Set[Event]) extends Split:
+    override def toString: String = events.mkString(", ")
 
   case class Join(point: Split, regions: List[Int]):
     def waitFor(region: Int): Join = Join(point, regions :+ region)

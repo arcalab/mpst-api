@@ -348,20 +348,21 @@ object MiniScala:
 //      ind(i) ++ s"""case ${params(pattern,ln = false)} => $output"""
 
 
+
   case class Evidence(evidence:Map[String,String]) extends Code:
     def toCode(implicit i: Int): String =
       if evidence.nonEmpty then
         ind(i) ++
           showEv(evidence.keys.toList) ++
-          "<:<" ++ showEv(evidence.values.toList)
+          " <:< " ++ showEv(evidence.values.toList)
       else ""
 
     protected def showEv(args:List[String]):String =
       if args.size == 1 then args.head
       else args.mkString("(",",",")")
 
-    def updKeysPrefix(prefix:String):Evidence =
-      Evidence(evidence.map(e=>(prefix++e._1,e._2)))
+//    def updKeysPrefix(prefix:String):Evidence =
+//      Evidence(evidence.map(e=>(prefix++e._1,e._2)))
 
 
   case class IfThenElse(cond:Statement,ok:Statement,ko:Option[Statement]=None) extends Statement:

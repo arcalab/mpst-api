@@ -2,6 +2,7 @@ package choreo.api
 
 import choreo.api
 import choreo.api.Code
+import choreo.api.EventsCtx.EventCtx
 import choreo.api.MiniScala.*
 import choreo.api.NPom2SessionCtx.*
 import choreo.api.LocalAPI.*
@@ -45,6 +46,15 @@ object SessionAPI:
       if e2v.contains(e) then
         e2v(e)
       else default(e)
+
+  def mkCaseComment(eventCtx:EventCtx):String =
+    s"""${eventCtx.e}:${eventCtx.act.toString}"""
+
+  def mkCaseComment(f:ForkInfo):String =
+    s"""fork at ${f.point.toString} with branches ${f.post.map(r=>r.id).mkString(",")}"""
+
+  def mkComment(j:JoinInfo):String =
+    s"""join at ${j.point.toString}"""
 
   def mkUtils():ScalaModule =
     val code =

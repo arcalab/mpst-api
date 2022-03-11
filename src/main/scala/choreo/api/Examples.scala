@@ -70,7 +70,7 @@ object Examples:
       "Buyer-Seller, Basic",
       s"""<p><strong>Basic protocol for the Buyer-Seller example</strong>
         |The code below is a possible implementation of a process that follows this protocol, assuming the classes Descr, Price, Acc, and Rej exist.
-        |<pre><code class="language-scala">${sellerHtml}<br><br>$buyer<br><br>$runHtml</code></pre></p>""".stripMargin
+        |<pre style="font-size: 1.1rem;">${sellerHtml}<br><br>$buyer<br><br>$runHtml</pre></p>""".stripMargin
     ):: Example(
       s"""// 1 Master - 2 Workers, Basic\n""" +
         "m->w1:Work . m->w2:Work .\nw1->m:Done . w2->m:Done",

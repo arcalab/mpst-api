@@ -72,11 +72,9 @@ object LocalAPI:
     stParams:+Param("net",TName("Network"))
 
   protected def mkCO(ctx:RoleCtx,typeDefs:Statement):ScalaObject =
-    val localMethods = mkLocalMethods(ctx)
-    var statements = Statements(typeDefs::localMethods.map(l=>l.getStatements()))
-    /// mk statement with match type, method
-    // mk init and end alias for each local + global
-    ScalaObject(ctx.name,Some(statements),None,Nil) // todo
+    val localMethods  = mkLocalMethods(ctx)
+    val statements    = Statements(typeDefs::localMethods.map(l=>l.getStatements()))
+    ScalaObject(ctx.name,Some(statements),None,Nil)
 
   protected def mkLocalMethods(ctx:RoleCtx):List[LocalMethod] =
     ctx.localCtx.foldLeft[List[LocalMethod]](Nil)({
@@ -90,17 +88,17 @@ object LocalAPI:
 
   protected def mkFork(ctx: RoleCtx):Option[GlobalMethod] =
     if ctx.forkes then
-      val method = mkForkMethod(ctx)
+      val (method,mt) = mkForkMethod(ctx)
       val typeDef = mkForkTypeDef(ctx)
-      Some(GlobalMethod(method,typeDef))
+      Some(GlobalMethod(method,Statements(mt::typeDef::Nil)))
     else
       None
 
-  protected def mkForkMethod(ctx:RoleCtx):MethodDef =
-    val ev = Set[Evidence]() //todo
+  protected def mkForkMethod(ctx:RoleCtx):(MethodDef,MatchTyp) =
+    val (ev,mt) = mkForkEvidence(ctx.localCtx.head)
     val returnType = mkForkType(ctx)
     val st = mkForkSt(ctx)
-    MethodDef("fork",Nil,Nil,ev,Some(returnType),st,None)
+    (MethodDef("fork",Nil,Nil,Set(ev),Some(returnType),st,None),mt)
 
   protected def mkForkSt(ctx:RoleCtx):Statement =
     val pattern = stateVar+1.toString::Nil
@@ -150,7 +148,7 @@ object LocalAPI:
     val defaultValues = lc.event2Param
     val pattern = mkPattern(lc.events,fork.pre,defaultValues)
     val outSt = TTuple(fork.post.map(b=>mkBranchType(b,ctx)))
-    MatchTypCase(pattern,outSt)
+    MatchTypCase(pattern,outSt,Some(mkCaseComment(fork)))
 
   protected def mkBranchType(r:RegionInfo,ctx:RoleCtx):TName =
     val lc = ctx.localCtx.head
@@ -158,6 +156,27 @@ object LocalAPI:
     val argValues = mkPattern(lc.events,r.values,defaultValues)
     val args = TTuple(argValues.map(v=>TName(v)))
     TName(ctx.name,  Some(args.toString::Nil))
+
+  def mkForkEvidence(ctx:RoleLocalCtx):(Evidence,MatchTyp) =
+    val name          = ctx.name+"$Evid$Fork"
+    val typeVar       = stateTVar+1
+    // evidence
+    val evidenceType  = TName(name,Some(typeVar::Nil))
+    val evidence      = Evidence(Map(evidenceType.toString->"true"))
+    // match type
+    val evidenceMT    = mkForkEvidenceMTCases(ctx)
+    val matchType     = MatchTyp(name,(typeVar,None)::Nil,evidenceMT)
+    (evidence,matchType)
+
+  def mkForkEvidenceMTCases(lc:RoleLocalCtx):List[MatchTypCase] =
+    val okCases =
+      for
+        f <- lc.forkJoin.get.forks
+        pattern = mkPattern(lc.events,f.pre,lc.event2Param)
+      yield
+        MatchTypCase(pattern,TName("true"),Some(mkCaseComment(f)))
+    val koCase = MatchTypCase("_"::Nil, TName("false"))
+    okCases:+koCase
 
   protected def mkJoins(ctx:RoleCtx):List[MethodDef] =
     if ctx.forkes then
@@ -172,7 +191,7 @@ object LocalAPI:
     val ev          = Set[Evidence]() // todo
     val returnType  = mkJoinType(j,ctx)
     val statement   = mkJoinSt(j,ctx)
-    MethodDef("join",Nil,params,ev,Some(returnType),statement,None)
+    MethodDef("join",Nil,params,ev,Some(returnType),statement,Some(mkComment(j)))
 
   protected def mkJoinParams(j:JoinInfo,ctx: RoleCtx):List[Param] =
     val lc = ctx.localCtx.head

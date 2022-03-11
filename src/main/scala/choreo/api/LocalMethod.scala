@@ -75,8 +75,8 @@ object LocalMethod:
     val comment  = mkCaseComment(eventCtx)
     Case(casePattern,caseType,returnSt,Some(comment))
 
-  protected def mkCaseComment(eventCtx:EventCtx):String =
-    s"""${eventCtx.e}:${eventCtx.act.toString}"""
+//  def mkCaseComment(eventCtx:EventCtx):String =
+//    s"""${eventCtx.e}:${eventCtx.act.toString}"""
 
   protected def mkCaseExpectedValues(eventCtx:EventCtx,ctx:RoleLocalCtx):(List[String],List[String]) =
     val defaultStValue  = ctx.event2Param//ctx.events.map(e=>e->"_").toMap
