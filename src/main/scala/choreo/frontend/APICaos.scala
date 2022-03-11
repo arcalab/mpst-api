@@ -76,15 +76,15 @@ object APICaos extends Configurator[Choreo]:
       -> viewTabs((c:Choreo) =>
       val session = SessionAPI(chor2npom(c));
       session.getModulesNameWithCode:::List("All"->session.toString),
-      Text),
-    "Background"
-      -> viewWarn((c:Choreo) => {
-        val (cc2,cc3) = (CC.iscc2(chor2npom(c).cc2),CC.iscc3(chor2npom(c).cc3))
-        s"The global choreography${if cc2 && cc3 then " IS" else " is NOT"} fully realisable."+
-          (if !cc2 then s"\n  - it is NOT weakly realisable" else "")+
-          (if !cc3 then s"\n  - it is NOT safely realisable" else "")},
-      Text
-      )
+      Text)//,
+//    "Background"
+//      -> viewWarn((c:Choreo) => {
+//        val (cc2,cc3) = (CC.iscc2(chor2npom(c).cc2),CC.iscc3(chor2npom(c).cc3))
+//        s"The global choreography${if cc2 && cc3 then " IS" else " is NOT"} fully realisable."+
+//          (if !cc2 then s"\n  - it is NOT weakly realisable" else "")+
+//          (if !cc3 then s"\n  - it is NOT safely realisable" else "")},
+//      Text
+//      )
 
     //    "NPomset as Text"
     //      -> Visualize((p:NPomset)=>Text(p.toString),chor2npom),
