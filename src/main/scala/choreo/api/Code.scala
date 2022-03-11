@@ -36,8 +36,6 @@ trait Code:
   def singleComment(str:String)(implicit i:Int):String =
     ind(i) ++ "// " ++ str
 
-
-
   def comment(str:String)(implicit i:Int):String =
     val lines = str.split("\n")
     ind(i) ++

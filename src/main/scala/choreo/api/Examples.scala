@@ -81,8 +81,9 @@ object Examples:
        |pr.run(worker1)
        |pr.run(worker2)
        |""".stripMargin
-  
-  def htmlify(s:String):String = s.replace("\n","<br>")
+
+  def htmlify(s:String):String =
+    s.replace("\n","<br>")
 
   val examples =
     Example(
