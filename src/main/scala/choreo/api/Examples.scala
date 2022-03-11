@@ -75,6 +75,23 @@ object Examples:
        |pr.run(buyer)
        |""".stripMargin
 
+  val masterWorkerImpBasic =
+    """def master(s: M$State$Init): M$State$Final =
+      | s.send(W1, Work).send(W2,  Work).recv((_, _, s) => {
+      |     println("#1"); s.recv((_, _, s) => {
+      |       println("#2"); s }) })
+      |
+      |
+      |def worker1(s: W1$State$Init): W1$State$Final = s
+      |  .recv((_, _, s) => {
+      |    Thread.sleep(scala.util.Random.nextInt(1000)); s.send(M, Done)
+      |  })
+      |
+      |def worker2(s: W2$State$Init): W2$State$Final = s
+      |  .recv((_, _, s) => {
+      |    Thread.sleep(scala.util.Random.nextInt(1000)); s.send(M, Done)
+      |  })""".stripMargin
+
   val masterWorkerImpl =
      """def master(s: M$State$Init): M$State$Final =
        |  val (s1, s2) = s.send(W1, Work).send(W2,  Work).fork()
@@ -142,19 +159,33 @@ object Examples:
       "// Buyer-Seller, Basic\n" +
         "s->b:Descr .\ns->b:Price .\n(b->s:Acc+b->s:Rej)",
       "Buyer-Seller, Basic",
-      s"""<p><strong>Basic protocol for the Buyer-Seller example</strong>
+      s"""<strong>Basic protocol for the Buyer-Seller example</strong>
+        |
         |The code below is a possible implementation of a process that follows this protocol.
-        |<pre style="font-size: 1.1rem;">${htmlify(basicBuyerSellerImpl)}</pre></p>""".stripMargin
+        |<pre style="font-size: 1.1rem;">${htmlify(basicBuyerSellerImpl)}</pre>
+        |
+        |To quickly run this example you can:
+        |<ul><li>open <a target="#" href="https://scastie.scala-lang.org">https://scastie.scala-lang.org</a>
+        |  to run Scala code online</li>
+        |  <li> Copy the code in the "All" tab of the "Scala APIs" widget and paste it on the Scastie</li>
+        |  <li> Copy the process implementations above and paste it on the bottom of the same Sastie</li>
+        |  <li> Press "Run" to run the process.</li>
+        |</ul>""".stripMargin
     ):: Example(
       s"""// 1 Master - 2 Workers, Basic\n""" +
         "m->w1:Work . m->w2:Work .\nw1->m:Done . w2->m:Done",
       "1Master-2Workers, Basic",
-      "<strong>Master-Worker: Basic protocol</strong>"
+      s"""<strong>Master-Worker: Basic protocol</strong>
+        |
+        |A master sends some Work to 2 workers sequentially, later it collects their results also sequentially.
+        |The code below is a possible implementation of a process that follows this protocol.
+        |<pre style="font-size: 1.1rem;">${htmlify(masterWorkerImpBasic)}</pre>""".stripMargin
     ):: Example(
       s"""// Buyer-Seller, Relaxed\n""" +
         "(s->b:Descr || s->b:Price) .\n(b->s:Acc + b->s:Rej)",
       "Buyer-Seller, Relaxed",
       s"""<strong>Buyer-Seller, Relaxed</strong>
+         |
          |The code below is a possible implementation of a process that follows this protocol.
          |<pre style="font-size: 1.1rem;">${htmlify(relaxedBuyerSellerImpl)}</pre>
          |""".stripMargin
@@ -163,6 +194,7 @@ object Examples:
         "m->w1:Work . m->w2:Work .\n(w1->m:Done || w2->m:Done)",
       "1Master-2Workers, Relaxed" ,
       s"""<strong>Master-Worker: relaxed protocol</strong>
+        |
         |The code below is a possible implementation of a process that follows this protocol, using forks and joins.
         |<pre style="font-size: 1.1rem;">${htmlify(masterWorkerImpl)}</pre>""".stripMargin
     ):: Example(
@@ -170,6 +202,7 @@ object Examples:
         "m->w1:Work . m->w2:Work . m->w3:Work .\n(w1->m:Done || w2->m:Done || w3->m:Done)",
       """1Master-3Workers, Relaxed""" ,
       s"""<strong>Master - 3 Workers: relaxed protocol</strong>
+        |
         |The code below is a possible implementation of a process that follows this protocol, using forks and joins.
         |<pre style="font-size: 1.1rem;">${htmlify(masterWorker3Impl)}</pre>""".stripMargin
     ):: Example(
