@@ -40,7 +40,19 @@ object LocalAPI:
     (clas,Statements(init::objStatements))
 
   protected def mkGlobalComment(ctx:RoleCtx):String =
-    s"""Main class for participant ${className(ctx.agent)}""".stripMargin
+    val stateVariables =
+      for (lc,i) <- ctx.localCtx.zipWithIndex yield
+        stateTVar+(i+1)+": "+mkEventActions(lc).mkString("(",", ",")")
+
+    s"""Main class for participant ${className(ctx.agent)}
+       |State variables represent events in each optional Pomset for ${className(ctx.agent)}:
+       |${stateVariables.mkString("\n")}""".stripMargin
+
+  protected def mkEventActions(lc:RoleLocalCtx):List[String] =
+    val stateVariables = for e <- lc.eventsCtx yield e.param+": "+e.act.toString
+    if lc.forkJoin.isDefined then
+      stateVariables:+"forkRegion"
+    else stateVariables
 
   protected def mkInitTypeDef(ctx:RoleCtx):TypeDef =
     val name  = TName(ctx.name+"$Init")
@@ -115,7 +127,7 @@ object LocalAPI:
     val defaultValues = lc.event2Param
     val pattern = mkPattern(lc.events,fork.pre,defaultValues)
     val outSt = Tuple(fork.post.map(b=>mkBranch(b,ctx)))
-    Case(pattern,pattern,outSt)
+    Case(pattern,pattern,outSt,Some(mkCaseComment(fork)))
 
   protected def mkBranch(r:RegionInfo,ctx:RoleCtx):Statement =
     val lc = ctx.localCtx.head
