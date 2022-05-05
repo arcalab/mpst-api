@@ -1,17 +1,23 @@
-# Choreo: choreographies with strong choice and loops
+# Build the docker image
 
-This project presents an animator of Choreo with prototype analysis tools.
-A snapshot of a visualiser can be found online:
- - http://arcalab.github.io/choreo/
+In a terminal run: 
 
+```
+> docker build -t tool .
+```
 
-How to compile local javascript
-==============
-* Pull the git submodules:
+# Run the container
 
-> git submodule update --init
+```
+> docker run -d -p 80:80 tool
+```
 
-* Compile with sbt:
+# Use the tool 
 
-> sbt fastLinkJS
+Open a browser and go to `localhost:80`
 
+# Observation 
+
+If you change the source code and you want to rebuild the image and run the new container, please,
+notice that some browsers might required to clear the cache in order to properly show the
+new version of the tool. 

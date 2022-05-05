@@ -127,20 +127,20 @@ object NPom2SessionCtx:
     visited: Set[Event]
   ):
     def addFork(e: Event, f: Fork): TraverseInfo =
-      println(s"new fork $f")
+//      println(s"new fork $f")
       this.copy(forks = forks + (e -> f), visited = visited + e)
 
     def addJoin(e: Event, j: Join): TraverseInfo =
-      println(s"new join $j")
+//      println(s"new join $j")
       if joins.isDefinedAt(e) then
         val old = joins(e)
         val upd = Join(old.point, (old.regions ++ j.regions).distinct)
-        println(s"it updates old: $old with $upd")
+//        println(s"it updates old: $old with $upd")
         this.copy(joins = joins + (e -> upd), visited = visited + e)
       else this.copy(joins = joins + (e -> j), visited = visited + e)
 
     def addLast(e: Event, r: Int): TraverseInfo =
-      println(s"new last $e waiting for region $r")
+//      println(s"new last $e waiting for region $r")
       this.copy(last = last + (e -> r), visited = visited + e)
 
     def getForks: List[Fork] = forks.values.toList
@@ -156,7 +156,7 @@ object NPom2SessionCtx:
 
 
   protected def getForkJoinInfo(pom: NPomset): Option[ForkJoin] =
-    println(s"fork info for: $pom")
+//    println(s"fork info for: $pom")
     val min = pom.minimum()
     val traverseInfo = traversePom(pom)
     var forks = traverseInfo.getForks
@@ -164,10 +164,10 @@ object NPom2SessionCtx:
     if forks.size >= 1 || min.size > 1 then
       if min.size > 1 then
         forks = forks :+ Fork(Many(min), min.map(i => i -> List(i)).toMap)
-        println(s"added special fork: ${Fork(Many(min),min.map(i=>i->List(i)).toMap)}")
+//        println(s"added special fork: ${Fork(Many(min),min.map(i=>i->List(i)).toMap)}")
       if traverseInfo.last.size > 1 then
         joins = joins :+ Join(Many(traverseInfo.getLastEvents), traverseInfo.getLastRegions)
-        println(s"added special join: ${Join(Many(traverseInfo.getLastEvents),traverseInfo.getLastRegions)}")
+//        println(s"added special join: ${Join(Many(traverseInfo.getLastEvents),traverseInfo.getLastRegions)}")
       Some(mkForkJoinInfo(forks, joins)(pom))
     else None
 

@@ -56,18 +56,18 @@ object Examples:
       |pr.run(buyer)""".stripMargin
 
   val relaxedBuyerSellerImpl:String =
-    """def seller(s: S$Initial): S$Final = s
-       |  .send(B, new Descr)
-       |  .send(B, new Price)
+    """def seller(s: S$State$Init): S$State$Final = s
+       |  .send(B, Descr)
+       |  .send(B, Price)
        |  .recv(
        |    (_, _, s) => { println("offer accepted"); s },
        |    (_, _, s) => { println("offer rejected"); s }
        |  )
        |
-       |def buyer(s: B$Initial): B$Final = s
+       |def buyer(s: B$State$Init): B$State$Final = s
        |  .recv(
-       |    (_, _, s) => s.recv((_, _, s) => s.send(S, new Acc)),
-       |    (_, _, s) => s.recv((_, _, s) => s.send(S, new Rej))
+       |    (_, _, s) => s.recv((_, _, s) => s.send(S, Acc)),
+       |    (_, _, s) => s.recv((_, _, s) => s.send(S, Rej))
        |  )
        |
        |val pr = new Protocol

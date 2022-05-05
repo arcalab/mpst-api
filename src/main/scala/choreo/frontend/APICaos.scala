@@ -37,7 +37,7 @@ import choreo.realisability.CC.*
 //  )
 
 object APICaos extends Configurator[Choreo]:
-  val name = "Scala API generation of MPST via Pomsets"
+  val name = "Scala1 API generation of MPST via Pomsets"
   override val languageName: String = "Global Protocol"
   /** Parser for Choreo expressions. */
   val parser: String=>Choreo = choreo.DSL.parse
@@ -54,7 +54,7 @@ object APICaos extends Configurator[Choreo]:
     //  -> Visualize(viewNPomMerm,Mermaid,chor2npom),
     //"Project NPomset"
     //  -> Visualize(viewNPomsMerm, Mermaid, chor2npom(_).projectAll),
-    "Sequence Diagram"
+    "Sequence Diagram1"
       -> view(SequenceChart.apply,Mermaid), //Visualize(viewChorMerm,Mermaid,id),
 //    "Global Set of Pomsets"
 //      -> viewMerms( c =>
